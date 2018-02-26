@@ -26,5 +26,7 @@
     <logger name="gov.usgs" level="INFO" />
     <logger name="org.springframework" level="INFO" />
     <logger name="com.netflix" level="INFO" />
+    <logger name="com.netflix" level="INFO" />
+    <logger name="net.servicestack.client.JsonServiceClient" level="INFO" />
 
 </configuration>
