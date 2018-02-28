@@ -1,6 +1,7 @@
 package gov.usgs.aqcu.model;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescription;
@@ -13,13 +14,24 @@ public class TimeSeriesSummaryReport {
 	private TimeSeriesDescription downchainTs;
 	private TimeSeriesDescription primaryTsMetadata;
 	private TimeSeriesSummaryCorrections corrections;
-	private List<TimeSeriesThreshold> thresholds;
+	private TimeSeriesSummaryMetadata reportMetadata;
 	private List<RatingCurve> ratingCurves;
 	private List<TimeSeriesSummaryRatingShift> ratingShifts;
 	
 	
 	public TimeSeriesSummaryReport() {
-		
+		primaryTsData = new TimeSeriesDataServiceResponse();
+		upchainTs = new TimeSeriesDescription();
+		downchainTs = new TimeSeriesDescription();
+		primaryTsMetadata = new TimeSeriesDescription();
+		corrections = new TimeSeriesSummaryCorrections();
+		reportMetadata = new TimeSeriesSummaryMetadata();
+		ratingCurves = new ArrayList<>();
+		ratingShifts = new ArrayList<>();
+	}
+	
+	public TimeSeriesSummaryMetadata getReportMetadata() {
+		return reportMetadata;
 	}
 	
 	public TimeSeriesSummaryCorrections getCorrections() {
@@ -42,16 +54,16 @@ public class TimeSeriesSummaryReport {
 		return primaryTsMetadata;
 	}
 	
-	public List<TimeSeriesThreshold> getThresholds() {
-		return thresholds;
-	}
-	
 	public List<RatingCurve> getRatingCurves() {
 		return ratingCurves;
 	}
 	
 	public List<TimeSeriesSummaryRatingShift> getRatingShifts() {
 		return ratingShifts;
+	}
+	
+	public void setReportMetadata(TimeSeriesSummaryMetadata val) {
+		reportMetadata = val;
 	}
 	
 	public void setCorrections(TimeSeriesSummaryCorrections val) {
@@ -72,10 +84,6 @@ public class TimeSeriesSummaryReport {
 	
 	public void setPrimaryTsMetadata(TimeSeriesDescription val) {
 		primaryTsMetadata = val;
-	}
-	
-	public void setThresholds(List<TimeSeriesThreshold> val) {
-		thresholds = val;
 	}
 	
 	public void setRatingCurves(List<RatingCurve> value) {

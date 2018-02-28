@@ -73,10 +73,14 @@ public class TheController {
 		if (StringUtils.isNumeric(endDateString)) {
 			endDate = Instant.parse(endDateString);
 		}
+		String requestingUser = "tesUser";
 
 		//Fetch Time Series Descriptions
 		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesMetadataService.get(primaryTimeseriesIdentifier);
-
+		
+		//Fetch Location Descriptions
+		
+		
 		//Fetch Upchain Processors
 		ProcessorListServiceResponse processorsResponse = upchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
 
@@ -87,9 +91,9 @@ public class TheController {
 		}
 
 		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse);
-
+		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse, startDate, endDate, requestingUser);
+		
 		return javaToRClient.render("drsteini", "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
 	}
-
+	
 }
