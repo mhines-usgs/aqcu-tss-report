@@ -16,6 +16,40 @@ management:
   security:
     enabled: false
 
+javaToR:
+  ribbon:
+    listOfServers: ${javaToRServers}
+    IsSecure: ${javaToRIsSecure:true}
+
+eureka:
+  client:
+    enabled: false
+
+feign:
+  hystrix:
+    enabled: true
+
+ribbon:
+  MaxAutoRetries: ${ribbonMaxAutoRetries}
+  MaxAutoRetriesNextServer: 0
+  ConnectTimeout: ${ribbonConnectTimeout}
+  ReadTimeout: ${ribbonReadTimeout}
+  OkToRetryOnAllOperations: true
+
+hystrix:
+  shareSecurityContext: true
+  command:
+    default:
+      execution:
+        isolation:
+          strategy: SEMAPHORE
+          thread:
+            timeoutInMilliseconds: ${hystrixThreadTimeout}
+
 spring:
   profiles:
     active: default, swagger
+  application:
+    name: aqcu-tss-report
+  jmx:
+    default-domain: aqcu-tss-report
