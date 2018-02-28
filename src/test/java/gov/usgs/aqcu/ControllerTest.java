@@ -31,13 +31,12 @@ public class ControllerTest {
 	private RatingCurveListService ratingCurveListService;
 	@Mock
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
-	private GsonBuilder gsonBuilder = new GsonBuilder();
 	private TheController controller;
 
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		controller = new TheController(timeSeriesMetadataService, upchainProcessorListService, ratingCurveListService, reportBuilderService, gsonBuilder);
+		controller = new TheController(timeSeriesMetadataService, upchainProcessorListService, ratingCurveListService, reportBuilderService);
 	}
 
 }

@@ -41,18 +41,15 @@ public class TheController {
 		TimeSeriesMetadataService timeSeriesMetadataService, 
 		UpchainProcessorListService upchainProcessorListService, 
 		RatingCurveListService ratingCurveListService,
-		TimeSeriesSummaryReportBuilderService reportBuilderService,
-		GsonBuilder gsonBuilder) {
+		TimeSeriesSummaryReportBuilderService reportBuilderService) {
 		this.timeSeriesMetadataService = timeSeriesMetadataService;
 		this.upchainProcessorListService = upchainProcessorListService;
 		this.ratingCurveListService = ratingCurveListService;
 		this.reportBuilderService = reportBuilderService;
-		
-		gson = gsonBuilder.create();
 	}
 
 	@GetMapping
-	public String getReport(
+	public TimeSeriesSummaryReport getReport(
 			@RequestParam String primaryTimeseriesIdentifier,
 			@RequestParam String station,
 			@RequestParam(required=false) String lastMonths,
@@ -70,7 +67,7 @@ public class TheController {
 		
 		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse);
 		
-		return gson.toJson(report);
+		return report;
 	}
 	
 }
