@@ -1,6 +1,7 @@
 package gov.usgs.aqcu.model;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Correction;
 
@@ -10,7 +11,9 @@ public class TimeSeriesSummaryCorrections {
 	private List<Correction> postProcessing;
 	
 	public TimeSeriesSummaryCorrections() {
-		
+		preProcessing = new ArrayList<>();
+		normal = new ArrayList<>();
+		postProcessing  = new ArrayList<>();
 	}
 	
 	public List<Correction> getPreProcessing() {

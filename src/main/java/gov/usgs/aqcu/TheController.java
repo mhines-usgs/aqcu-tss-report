@@ -51,7 +51,6 @@ public class TheController {
 	@GetMapping
 	public TimeSeriesSummaryReport getReport(
 			@RequestParam String primaryTimeseriesIdentifier,
-			@RequestParam String station,
 			@RequestParam(required=false) String lastMonths,
 			@RequestParam(required=false) String waterYear,
 			@RequestParam(required=false) String startDateString,
@@ -60,9 +59,13 @@ public class TheController {
 	
 		Instant startDate = Instant.parse(startDateString);
 		Instant endDate = Instant.parse(endDateString);
+		String requestingUser = "tesUser";
 		
-		//Fetch Time Series Descriptions
+		//Fetch Primary Time Series Descriptions
 		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesMetadataService.get(primaryTimeseriesIdentifier);
+		
+		//Fetch Location Descriptions
+		
 		
 		//Fetch Upchain Processors
 		ProcessorListServiceResponse processorsResponse = upchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
@@ -74,7 +77,7 @@ public class TheController {
 		}
 		
 		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse);
+		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse, startDate, endDate, requestingUser);
 		
 		return report;
 	}
