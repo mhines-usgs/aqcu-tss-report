@@ -50,7 +50,7 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 	}
 	
 	@Override
-    public void configureMessageConverters(List<HttpMessageConverter < ? >> converters) {
+	public void configureMessageConverters(List<HttpMessageConverter < ? >> converters) {
 		FieldNamingStrategy LOWER_CASE_CAMEL_CASE = new FieldNamingStrategy() {  
 			@Override
 			public String translateName(Field f) {
