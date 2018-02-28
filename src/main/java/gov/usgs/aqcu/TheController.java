@@ -1,31 +1,27 @@
 package gov.usgs.aqcu;
 
+import java.time.Instant;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
-import java.time.Instant;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
-
-import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
-import gov.usgs.aqcu.client.JavaToRClient;
-import gov.usgs.aqcu.retrieval.TimeSeriesMetadataService;
-import gov.usgs.aqcu.retrieval.RatingCurveListService;
-import gov.usgs.aqcu.retrieval.UpchainProcessorListService;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
+import com.google.gson.Gson;
 
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
+import gov.usgs.aqcu.client.JavaToRClient;
+import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
+import gov.usgs.aqcu.retrieval.RatingCurveListService;
+import gov.usgs.aqcu.retrieval.TimeSeriesMetadataService;
+import gov.usgs.aqcu.retrieval.UpchainProcessorListService;
 
 @RestController
 @RequestMapping("/timeseriessummary")
@@ -54,7 +50,7 @@ public class TheController {
 		this.gson = gson;
 	}
 
-	@GetMapping
+	@GetMapping(produces="application/octet-stream")
 	public byte[] getReport(
 			@RequestParam String primaryTimeseriesIdentifier,
 			@RequestParam String station,
@@ -79,8 +75,8 @@ public class TheController {
 		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesMetadataService.get(primaryTimeseriesIdentifier);
 		
 		//Fetch Location Descriptions
-		
-		
+
+
 		//Fetch Upchain Processors
 		ProcessorListServiceResponse processorsResponse = upchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
 
@@ -92,8 +88,8 @@ public class TheController {
 
 		//Build the TSS Report JSON
 		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse, startDate, endDate, requestingUser);
-		
-		return javaToRClient.render("drsteini", "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
+
+		return javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
 	}
-	
+
 }
