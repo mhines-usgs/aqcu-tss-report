@@ -54,9 +54,14 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 		FieldNamingStrategy LOWER_CASE_CAMEL_CASE = new FieldNamingStrategy() {  
 			@Override
 			public String translateName(Field f) {
-				char c[] = f.getName().toCharArray();
-				c[0] = Character.toLowerCase(c[0]);
-				return new String(c);
+				String fName = f.getName();
+				if(fName != null && fName.length() > 0) {
+					char c[] = f.getName().toCharArray();
+					c[0] = Character.toLowerCase(c[0]);
+					return new String(c);
+				} else {
+					return fName;
+				}
 			}
 		};
 	
