@@ -1,9 +1,10 @@
 package gov.usgs.aqcu;
 
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 import org.junit.Before;
@@ -38,5 +39,28 @@ public class ControllerTest {
 		MockitoAnnotations.initMocks(this);
 		controller = new TheController(timeSeriesMetadataService, upchainProcessorListService, ratingCurveListService, reportBuilderService);
 	}
-
+	
+	@Test(expected = java.lang.NullPointerException.class)
+	public void noParametersTest() {
+		when(timeSeriesMetadataService.get(anyString())).thenReturn(null);
+		when(upchainProcessorListService.get(anyString(), anyObject(), anyObject())).thenReturn(null);
+		TimeSeriesSummaryReport report = controller.getReport(null, null, null, null, null, null, null);
+	}
+	
+	@Test
+	public void noRatingModelTest() {
+		TimeSeriesSummaryReport blankReport = new TimeSeriesSummaryReport();
+		when(timeSeriesMetadataService.get(anyString())).thenReturn(null);
+		when(upchainProcessorListService.get(anyString(), anyObject(), anyObject())).thenReturn(null);
+		when(reportBuilderService.buildTimeSeriesSummaryReport(anyObject(), anyObject())).thenReturn(blankReport);
+		
+		TimeSeriesSummaryReport report = controller.getReport(null, null, null, null, "2017-01-01T00:00:00Z", "2017-02-01T00:00:00Z", null);
+		
+		verify(timeSeriesMetadataService).get(anyString());
+		verify(upchainProcessorListService).get(anyString(), anyObject(), anyObject());
+		verify(ratingCurveListService, never()).get(anyString(), anyObject(), anyObject(), anyObject());
+		verify(reportBuilderService).buildTimeSeriesSummaryReport(anyObject(), anyObject());
+		
+		assertEquals(report, blankReport);
+	}
 }

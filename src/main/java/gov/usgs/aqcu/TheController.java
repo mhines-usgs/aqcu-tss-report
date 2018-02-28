@@ -57,14 +57,23 @@ public class TheController {
 			@RequestParam(required=false) String startDateString,
 			@RequestParam(required=false) String endDateString,
 			@RequestParam(required=false) String excludedCorrections) {	
-			
+	
 		Instant startDate = Instant.parse(startDateString);
 		Instant endDate = Instant.parse(endDateString);
 		
+		//Fetch Time Series Descriptions
 		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesMetadataService.get(primaryTimeseriesIdentifier);
-		ProcessorListServiceResponse processorsResponse = upchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
-		RatingCurveListServiceResponse ratingCurvesResponse = ratingCurveListService.get(processorsResponse.getProcessors().get(0).getInputRatingModelIdentifier(), null, startDate, endDate);
 		
+		//Fetch Upchain Processors
+		ProcessorListServiceResponse processorsResponse = upchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
+		
+		//Fetch Rating Curves IFF we got at least one upchain processor to pull the rating model identifier from
+		RatingCurveListServiceResponse ratingCurvesResponse = null;
+		if(processorsResponse != null && processorsResponse.getProcessors() != null && processorsResponse.getProcessors().size() > 0) {
+			ratingCurvesResponse = ratingCurveListService.get(processorsResponse.getProcessors().get(0).getInputRatingModelIdentifier(), null, startDate, endDate);
+		}
+		
+		//Build the TSS Report JSON
 		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse);
 		
 		return report;

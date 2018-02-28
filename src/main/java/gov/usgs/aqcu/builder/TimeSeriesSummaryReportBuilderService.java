@@ -21,11 +21,13 @@ import gov.usgs.aqcu.model.TimeSeriesSummaryRatingShift;
 public class TimeSeriesSummaryReportBuilderService {	
 	public TimeSeriesSummaryReport buildTimeSeriesSummaryReport (
 		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse,
-		RatingCurveListServiceResponse ratingCurvesResponse) {
+		RatingCurveListServiceResponse ratingCurvesResponse) {			
 			TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
 			
-			report.setRatingShifts(createTimeSeriesSummaryRatingShifts(ratingCurvesResponse));
-			report.setRatingCurves(ratingCurvesResponse.getRatingCurves());
+			if(ratingCurvesResponse != null && ratingCurvesResponse.getRatingCurves() != null && ratingCurvesResponse.getRatingCurves().size() > 0) {
+				report.setRatingShifts(createTimeSeriesSummaryRatingShifts(ratingCurvesResponse));
+				report.setRatingCurves(ratingCurvesResponse.getRatingCurves());
+			}
 			
 			return report;
 	}
