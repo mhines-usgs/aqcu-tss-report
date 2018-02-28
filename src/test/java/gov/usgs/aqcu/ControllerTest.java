@@ -19,6 +19,7 @@ import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
 import gov.usgs.aqcu.retrieval.TimeSeriesMetadataService;
 import gov.usgs.aqcu.retrieval.UpchainProcessorListService;
 import gov.usgs.aqcu.retrieval.RatingCurveListService;
+import gov.usgs.aqcu.retrieval.LocationDescriptionListService;
 
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 
@@ -31,13 +32,15 @@ public class ControllerTest {
 	@Mock
 	private RatingCurveListService ratingCurveListService;
 	@Mock
+	private LocationDescriptionListService locationDescriptionListService;
+	@Mock
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
 	private TheController controller;
 
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		controller = new TheController(timeSeriesMetadataService, upchainProcessorListService, ratingCurveListService, reportBuilderService);
+		controller = new TheController(timeSeriesMetadataService, upchainProcessorListService, ratingCurveListService, reportBuilderService, locationDescriptionListService);
 	}
 	
 	@Test(expected = java.lang.NullPointerException.class)
@@ -52,14 +55,14 @@ public class ControllerTest {
 		TimeSeriesSummaryReport blankReport = new TimeSeriesSummaryReport();
 		when(timeSeriesMetadataService.get(anyString())).thenReturn(null);
 		when(upchainProcessorListService.get(anyString(), anyObject(), anyObject())).thenReturn(null);
-		when(reportBuilderService.buildTimeSeriesSummaryReport(anyObject(), anyObject(), anyObject(), anyObject(), anyString())).thenReturn(blankReport);
+		when(reportBuilderService.buildTimeSeriesSummaryReport(anyObject(), anyObject(), anyObject(), anyObject(), anyObject(), anyString())).thenReturn(blankReport);
 		
 		TimeSeriesSummaryReport report = controller.getReport(null, null, null, "2017-01-01T00:00:00Z", "2017-02-01T00:00:00Z", null);
 		
 		verify(timeSeriesMetadataService).get(anyString());
 		verify(upchainProcessorListService).get(anyString(), anyObject(), anyObject());
 		verify(ratingCurveListService, never()).get(anyString(), anyObject(), anyObject(), anyObject());
-		verify(reportBuilderService).buildTimeSeriesSummaryReport(anyObject(), anyObject(), anyObject(), anyObject(), anyString());
+		verify(reportBuilderService).buildTimeSeriesSummaryReport(anyObject(), anyObject(), anyObject(), anyObject(), anyObject(), anyString());
 		
 		assertEquals(report, blankReport);
 	}

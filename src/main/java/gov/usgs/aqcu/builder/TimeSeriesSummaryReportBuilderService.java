@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.LocationDescriptionListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShift;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShiftPoint;
@@ -27,6 +28,7 @@ public class TimeSeriesSummaryReportBuilderService {
 	public TimeSeriesSummaryReport buildTimeSeriesSummaryReport (
 		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse,
 		RatingCurveListServiceResponse ratingCurvesResponse,
+		LocationDescriptionListServiceResponse locationResponse,
 		Instant startDate,
 		Instant endDate,
 		String requestingUser) {			
@@ -34,7 +36,7 @@ public class TimeSeriesSummaryReportBuilderService {
 			TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
 			
 			//Add Report Metadata
-			report.setReportMetadata(createTimeSeriesSummaryMetadata(startDate, endDate, requestingUser));
+			report.setReportMetadata(createTimeSeriesSummaryMetadata(locationResponse, metadataResponse, startDate, endDate, requestingUser));
 			
 			//Add Primary TS Metadata
 			report.setPrimaryTsMetadata(metadataResponse.getTimeSeriesDescriptions().get(0));
@@ -57,19 +59,21 @@ public class TimeSeriesSummaryReportBuilderService {
 	}
 	
 	private TimeSeriesSummaryMetadata createTimeSeriesSummaryMetadata(
+		LocationDescriptionListServiceResponse locationResponse,
+		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse,
 		Instant startDate,
 		Instant endDate,
 		String requestingUser) {
 		TimeSeriesSummaryMetadata metadata = new TimeSeriesSummaryMetadata();
 		
 		metadata.setRequestingUser(requestingUser);
-		metadata.setTimezone("Etc/GMT+5");
+		metadata.setTimezone("Etc/GMT+" + (int)(-1 * metadataResponse.getTimeSeriesDescriptions().get(0).getUtcOffset()));
 		metadata.setStartDate(startDate);
 		metadata.setEndDate(endDate);
 		metadata.setTitle("Time Series Summary");
-		metadata.setPrimaryParameter("primaryParmaeter");
-		metadata.setStationName("stationName");
-		metadata.setStationId("stationId");
+		metadata.setPrimaryParameter(metadataResponse.getTimeSeriesDescriptions().get(0).getIdentifier());
+		metadata.setStationName(locationResponse.getLocationDescriptions().get(0).getName());
+		metadata.setStationId(locationResponse.getLocationDescriptions().get(0).getIdentifier());
 		
 		return metadata;
 	}
