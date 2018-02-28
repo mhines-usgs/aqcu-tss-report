@@ -11,6 +11,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
+import com.google.gson.GsonBuilder;
+
 import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
 
 import gov.usgs.aqcu.retrieval.TimeSeriesMetadataService;
@@ -29,12 +31,13 @@ public class ControllerTest {
 	private RatingCurveListService ratingCurveListService;
 	@Mock
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
+	private GsonBuilder gsonBuilder = new GsonBuilder();
 	private TheController controller;
 
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		controller = new TheController(timeSeriesMetadataService, upchainProcessorListService, ratingCurveListService, reportBuilderService);
+		controller = new TheController(timeSeriesMetadataService, upchainProcessorListService, ratingCurveListService, reportBuilderService, gsonBuilder);
 	}
 
 }

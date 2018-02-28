@@ -30,7 +30,7 @@ import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 @RequestMapping("/timeseriessummary")
 public class TheController {
 	private static final Logger LOG = LoggerFactory.getLogger(TheController.class);
-	private Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	private Gson gson;
 	private TimeSeriesMetadataService timeSeriesMetadataService;
 	private RatingCurveListService ratingCurveListService;
 	private UpchainProcessorListService upchainProcessorListService;
@@ -41,11 +41,14 @@ public class TheController {
 		TimeSeriesMetadataService timeSeriesMetadataService, 
 		UpchainProcessorListService upchainProcessorListService, 
 		RatingCurveListService ratingCurveListService,
-		TimeSeriesSummaryReportBuilderService reportBuilderService) {
+		TimeSeriesSummaryReportBuilderService reportBuilderService,
+		GsonBuilder gsonBuilder) {
 		this.timeSeriesMetadataService = timeSeriesMetadataService;
 		this.upchainProcessorListService = upchainProcessorListService;
 		this.ratingCurveListService = ratingCurveListService;
 		this.reportBuilderService = reportBuilderService;
+		
+		gson = gsonBuilder.create();
 	}
 
 	@GetMapping
