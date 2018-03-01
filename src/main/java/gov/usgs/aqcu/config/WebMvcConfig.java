@@ -48,9 +48,16 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 				.resourceChain(true)
 				.addResolver(new WebJarsResourceResolver());
 	}
-	
+
 	@Override
 	public void configureMessageConverters(List<HttpMessageConverter < ? >> converters) {
+		GsonHttpMessageConverter gsonHttpMessageConverter = new GsonHttpMessageConverter();
+		gsonHttpMessageConverter.setGson(gson());
+		converters.add(gsonHttpMessageConverter);
+	}
+
+	@Bean
+	public Gson gson() {
 		FieldNamingStrategy LOWER_CASE_CAMEL_CASE = new FieldNamingStrategy() {  
 			@Override
 			public String translateName(Field f) {
@@ -64,16 +71,15 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 				}
 			}
 		};
-	
+
 		Gson gson = new GsonBuilder()
 			.registerTypeAdapter(Instant.class, new InstantSerializer())
 			.registerTypeAdapter(Instant.class, new InstantDeserializer())
 			.registerTypeAdapter(Json.class, new SwaggerGsonSerializer())
 			.setFieldNamingStrategy(LOWER_CASE_CAMEL_CASE)
 			.create();
-	
-        GsonHttpMessageConverter gsonHttpMessageConverter = new GsonHttpMessageConverter();
-		gsonHttpMessageConverter.setGson(gson);
-        converters.add(gsonHttpMessageConverter);
-    }
+
+		return gson;
+	}
+
 }
