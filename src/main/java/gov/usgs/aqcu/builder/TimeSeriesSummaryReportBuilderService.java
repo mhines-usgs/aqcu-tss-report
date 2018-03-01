@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShift;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShiftPoint;
@@ -18,6 +19,7 @@ import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
 import gov.usgs.aqcu.model.TimeSeriesSummaryCorrections;
 import gov.usgs.aqcu.model.TimeSeriesSummaryRatingShift;
 import gov.usgs.aqcu.model.TimeSeriesSummaryMetadata;
+import gov.usgs.aqcu.model.TimeSeriesMetadata;
 
 
 @Component
@@ -27,9 +29,11 @@ public class TimeSeriesSummaryReportBuilderService {
 	public TimeSeriesSummaryReport buildTimeSeriesSummaryReport (
 		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse,
 		RatingCurveListServiceResponse ratingCurvesResponse,
+		TimeSeriesDataServiceResponse timeSeriesResponse,
 		Instant startDate,
 		Instant endDate,
-		String requestingUser) {			
+		String requestingUser,
+		String primaryTimeseriesIdentifier) {
 		
 			TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
 			
@@ -44,6 +48,7 @@ public class TimeSeriesSummaryReportBuilderService {
 			//Add Downchain TS Metadata
 			
 			//Add Primary TS Data
+			report.setPrimaryTsData(createPrimaryTsData(primaryTimeseriesIdentifier, startDate, endDate));
 			
 			//Add Corrections
 			
@@ -72,6 +77,20 @@ public class TimeSeriesSummaryReportBuilderService {
 		metadata.setStationId("stationId");
 		
 		return metadata;
+	}
+	
+	private TimeSeriesMetadata createPrimaryTsData (
+			String primaryTimeseriesIdentifier, 
+			Instant startDate, 
+			Instant endDate) {
+		TimeSeriesMetadata tsMetadata = new TimeSeriesMetadata();
+		
+		tsMetadata.setPrimaryTimeseriesIdentifier(primaryTimeseriesIdentifier);
+		tsMetadata.setStartDate(startDate);
+		tsMetadata.setEndDate(endDate);
+		
+		return tsMetadata;
+		
 	}
 
 	private List<TimeSeriesSummaryRatingShift> createTimeSeriesSummaryRatingShifts(RatingCurveListServiceResponse ratingCurvesResponse) {

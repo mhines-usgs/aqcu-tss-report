@@ -17,12 +17,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
-
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
 import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
 
 import gov.usgs.aqcu.retrieval.TimeSeriesMetadataService;
 import gov.usgs.aqcu.retrieval.RatingCurveListService;
 import gov.usgs.aqcu.retrieval.UpchainProcessorListService;
+import gov.usgs.aqcu.retrieval.TimeSeriesDataCorrectedService;
 
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 
@@ -35,21 +36,24 @@ public class TheController {
 	private RatingCurveListService ratingCurveListService;
 	private UpchainProcessorListService upchainProcessorListService;
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
+	private TimeSeriesDataCorrectedService timeSeriesDataCorrectedService;
 
 	@Autowired
 	public TheController(
 		TimeSeriesMetadataService timeSeriesMetadataService, 
 		UpchainProcessorListService upchainProcessorListService, 
 		RatingCurveListService ratingCurveListService,
-		TimeSeriesSummaryReportBuilderService reportBuilderService) {
+		TimeSeriesSummaryReportBuilderService reportBuilderService,
+		TimeSeriesDataCorrectedService timeSeriesDataCorrectedService) {
 		this.timeSeriesMetadataService = timeSeriesMetadataService;
 		this.upchainProcessorListService = upchainProcessorListService;
 		this.ratingCurveListService = ratingCurveListService;
 		this.reportBuilderService = reportBuilderService;
+		this.timeSeriesDataCorrectedService = timeSeriesDataCorrectedService;
 	}
 
 	@GetMapping
-	public TimeSeriesSummaryReport getReport(
+	public TimeSeriesDataServiceResponse getReport(
 			@RequestParam String primaryTimeseriesIdentifier,
 			@RequestParam(required=false) String lastMonths,
 			@RequestParam(required=false) String waterYear,
@@ -76,10 +80,13 @@ public class TheController {
 			ratingCurvesResponse = ratingCurveListService.get(processorsResponse.getProcessors().get(0).getInputRatingModelIdentifier(), null, startDate, endDate);
 		}
 		
-		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse, startDate, endDate, requestingUser);
+		//Fetch Time Series Data Corrected Service
+		TimeSeriesDataServiceResponse timeSeriesResponse = timeSeriesDataCorrectedService.get(primaryTimeseriesIdentifier, startDate, endDate);
 		
-		return report;
+		//Build the TSS Report JSON
+		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse, startDate, endDate, requestingUser, timeSeriesResponse);
+		
+		return timeSeriesResponse;
 	}
 	
 }
