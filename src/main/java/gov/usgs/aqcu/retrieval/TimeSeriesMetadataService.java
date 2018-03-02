@@ -16,19 +16,10 @@ import net.servicestack.client.IReturn;
 import net.servicestack.client.WebServiceException;
 
 @Component
-public class TimeSeriesMetadataService {
+public class TimeSeriesMetadataService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesMetadataService.class);
 
-	@Autowired
-	private String aquariusUrl;
-
-	@Autowired
-	private String aquariusUser;
-
-	@Autowired
-	private String aquariusPassword;
-
-	public TimeSeriesDescriptionListByUniqueIdServiceResponse get(String primaryTimeseriesIdentifier) {
+	public TimeSeriesDescriptionListByUniqueIdServiceResponse get(String primaryTimeseriesIdentifier) throws Exception {
 		ArrayList<String> timeSeriesUniqueIds = new ArrayList<>(Arrays.asList(primaryTimeseriesIdentifier));
 
 		TimeSeriesDescriptionListByUniqueIdServiceRequest request = new TimeSeriesDescriptionListByUniqueIdServiceRequest()
@@ -36,18 +27,4 @@ public class TimeSeriesMetadataService {
 		TimeSeriesDescriptionListByUniqueIdServiceResponse tssDesc = executePublishApiRequest(request);
 		return tssDesc;
 	}
-
-	public <TResponse> TResponse executePublishApiRequest(IReturn<TResponse> request) {
-		try (AquariusClient client = AquariusClient.createConnectedClient(aquariusUrl, aquariusUser, aquariusPassword)) {
-			return client.Publish.get(request);
-		} catch (WebServiceException e) {
-			LOG.error("A web service error occurred while fetching data from Aquarius: \nStatus: " + e.getStatusCode() + "\nError Code: "
-					+ e.getErrorCode() + "\nMessage: " + e.getErrorMessage() + "\n");
-			return null;
-		} catch (Exception e) {
-			LOG.error("An unexpected error occurred while attempting to fetch data from Aquarius: ", e);
-			return null;
-		}
-	}
-
 }

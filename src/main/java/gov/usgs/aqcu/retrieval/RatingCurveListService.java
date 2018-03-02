@@ -18,19 +18,10 @@ import net.servicestack.client.IReturn;
 import net.servicestack.client.WebServiceException;
 
 @Component
-public class RatingCurveListService {
+public class RatingCurveListService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(RatingCurveListService.class);
 
-	@Autowired
-	private String aquariusUrl;
-
-	@Autowired
-	private String aquariusUser;
-
-	@Autowired
-	private String aquariusPassword;
-
-	public RatingCurveListServiceResponse get(String ratingModelIdentifier, Double utcOffset, Instant startDate, Instant endDate) {
+	public RatingCurveListServiceResponse get(String ratingModelIdentifier, Double utcOffset, Instant startDate, Instant endDate) throws Exception {
 		RatingCurveListServiceRequest request = new RatingCurveListServiceRequest()
 				.setRatingModelIdentifier(ratingModelIdentifier)
 				.setUtcOffset(utcOffset)
@@ -39,18 +30,4 @@ public class RatingCurveListService {
 		RatingCurveListServiceResponse ratingCurveResponse = executePublishApiRequest(request);
 		return ratingCurveResponse;
 	}
-
-	public <TResponse> TResponse executePublishApiRequest(IReturn<TResponse> request) {
-		try (AquariusClient client = AquariusClient.createConnectedClient(aquariusUrl, aquariusUser, aquariusPassword)) {
-			return client.Publish.get(request);
-		} catch (WebServiceException e) {
-			LOG.error("A web service error occurred while fetching data from Aquarius: \nStatus: " + e.getStatusCode() + "\nError Code: "
-					+ e.getErrorCode() + "\nMessage: " + e.getErrorMessage() + "\n");
-			return null;
-		} catch (Exception e) {
-			LOG.error("An unexpected error occurred while attempting to fetch data from Aquarius: ", e);
-			return null;
-		}
-	}
-
 }

@@ -18,19 +18,10 @@ import net.servicestack.client.IReturn;
 import net.servicestack.client.WebServiceException;
 
 @Component
-public class UpchainProcessorListService {
+public class UpchainProcessorListService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(UpchainProcessorListService.class);
 
-	@Autowired
-	private String aquariusUrl;
-
-	@Autowired
-	private String aquariusUser;
-
-	@Autowired
-	private String aquariusPassword;
-
-	public ProcessorListServiceResponse get(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) {
+	public ProcessorListServiceResponse get(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) throws Exception {
 				UpchainProcessorListByTimeSeriesServiceRequest request = new UpchainProcessorListByTimeSeriesServiceRequest()
 				.setTimeSeriesUniqueId(primaryTimeseriesIdentifier)
 				.setQueryFrom(startDate)
@@ -38,18 +29,4 @@ public class UpchainProcessorListService {
 		ProcessorListServiceResponse processorsResponse = executePublishApiRequest(request);
 		return processorsResponse;
 	}
-
-	public <TResponse> TResponse executePublishApiRequest(IReturn<TResponse> request) {
-		try (AquariusClient client = AquariusClient.createConnectedClient(aquariusUrl, aquariusUser, aquariusPassword)) {
-			return client.Publish.get(request);
-		} catch (WebServiceException e) {
-			LOG.error("A web service error occurred while fetching data from Aquarius: \nStatus: " + e.getStatusCode() + "\nError Code: "
-					+ e.getErrorCode() + "\nMessage: " + e.getErrorMessage() + "\n");
-			return null;
-		} catch (Exception e) {
-			LOG.error("An unexpected error occurred while attempting to fetch data from Aquarius: ", e);
-			return null;
-		}
-	}
-
 }

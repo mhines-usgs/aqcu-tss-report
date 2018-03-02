@@ -1,99 +1,80 @@
 package gov.usgs.aqcu;
 
+import java.util.List;
+import java.util.Arrays;
 import java.time.Instant;
-import com.google.gson.Gson;
 import org.apache.commons.lang3.StringUtils;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.format.annotation.DateTimeFormat;
 
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.LocationDescriptionListServiceResponse;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
+import com.aquaticinformatics.aquarius.sdk.timeseries.serializers.InstantDeserializer;
 
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 import gov.usgs.aqcu.client.JavaToRClient;
 import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
-import gov.usgs.aqcu.retrieval.RatingCurveListService;
-import gov.usgs.aqcu.retrieval.TimeSeriesMetadataService;
-import gov.usgs.aqcu.retrieval.UpchainProcessorListService;
-import gov.usgs.aqcu.retrieval.LocationDescriptionListService;
+
+import net.servicestack.client.WebServiceException;
+import gov.usgs.aqcu.exception.AquariusException;
 
 @RestController
+@Validated
 @RequestMapping("/timeseriessummary")
 public class TheController {
 	private static final Logger LOG = LoggerFactory.getLogger(TheController.class);
 	private Gson gson;
-	private TimeSeriesMetadataService timeSeriesMetadataService;
-	private RatingCurveListService ratingCurveListService;
-	private UpchainProcessorListService upchainProcessorListService;
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
-	private LocationDescriptionListService locationDescriptionListService;
 	private JavaToRClient javaToRClient;
 
 	@Autowired
 	public TheController(
-		TimeSeriesMetadataService timeSeriesMetadataService, 
-		UpchainProcessorListService upchainProcessorListService, 
-		RatingCurveListService ratingCurveListService,
 		TimeSeriesSummaryReportBuilderService reportBuilderService,
-		LocationDescriptionListService locationDescriptionListService) {
 		JavaToRClient javaToRClient,
 		Gson gson) {
-		this.timeSeriesMetadataService = timeSeriesMetadataService;
-		this.upchainProcessorListService = upchainProcessorListService;
-		this.ratingCurveListService = ratingCurveListService;
 		this.reportBuilderService = reportBuilderService;
-		this.locationDescriptionListService = locationDescriptionListService;
 		this.javaToRClient = javaToRClient;
 		this.gson = gson;
 	}
-
-	@GetMapping(produces="application/octet-stream")
-	public byte[] getReport(
+	
+	@GetMapping(produces={MediaType.APPLICATION_JSON_VALUE,MediaType.TEXT_HTML_VALUE})
+	public ResponseEntity<?> getReport(
 			@RequestParam String primaryTimeseriesIdentifier,
-			@RequestParam String station,
-			@RequestParam(required=false) String lastMonths,
-			@RequestParam(required=false) String waterYear,
-			@RequestParam(required=false) String startDateString,
-			@RequestParam(required=false) String endDateString,
-			@RequestParam(required=false) String excludedCorrections) {
-		Instant startDate = null;
-		Instant endDate = null;
-
-		if (StringUtils.isNumeric(startDateString)) {
-			startDate = Instant.parse(startDateString);
-		}
-		if (StringUtils.isNumeric(endDateString)) {
-			endDate = Instant.parse(endDateString);
-		}
+			@RequestParam(required=true) @DateTimeFormat(pattern=InstantDeserializer.Pattern) Instant startDate,
+			@RequestParam(required=true) @DateTimeFormat(pattern=InstantDeserializer.Pattern) Instant endDate,
+			@RequestParam(required=false) String excludedCorrections,
+			@RequestHeader("Accept") MediaType acceptType) throws Exception {
+		//Pull Requesting User From Headers
 		String requestingUser = "testUser";
 
-		//Fetch Time Series Descriptions
-		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesMetadataService.get(primaryTimeseriesIdentifier);
-		
-		//Fetch Location Descriptions
-
-
-		//Fetch Upchain Processors
-		ProcessorListServiceResponse processorsResponse = upchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
-
-		//Fetch Rating Curves IFF we got at least one upchain processor to pull the rating model identifier from
-		RatingCurveListServiceResponse ratingCurvesResponse = null;
-		if(processorsResponse != null && processorsResponse.getProcessors() != null && processorsResponse.getProcessors().size() > 0) {
-			ratingCurvesResponse = ratingCurveListService.get(processorsResponse.getProcessors().get(0).getInputRatingModelIdentifier(), null, startDate, endDate);
+		//Parse Excluded Corrections
+		List<String> excludedCorrectionsList = null;
+		if(excludedCorrections != null && excludedCorrections.length() >0) {
+			excludedCorrectionsList = Arrays.asList(excludedCorrections.split(","));
 		}
 
 		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse, locationResponse, startDate, endDate, requestingUser);
+		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrectionsList, startDate, endDate, requestingUser);
+			
+		//Render the Report
+		if(acceptType == MediaType.TEXT_HTML) {
+			byte[] reportHtml = javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
+			return new ResponseEntity<byte[]>(new byte[1], new HttpHeaders(), HttpStatus.OK);
+		} else {
+			return new ResponseEntity<TimeSeriesSummaryReport>(report, new HttpHeaders(), HttpStatus.OK);
+		}
 		
-		//Return the Rendered Report
-		return javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
 	}
-
 }
