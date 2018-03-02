@@ -26,7 +26,6 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.serializers.InstantDeseria
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 import gov.usgs.aqcu.client.JavaToRClient;
 import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
-
 import net.servicestack.client.WebServiceException;
 import gov.usgs.aqcu.exception.AquariusException;
 
@@ -68,13 +67,12 @@ public class TheController {
 		//Build the TSS Report JSON
 		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrectionsList, startDate, endDate, requestingUser);
 			
-		//Render the Report
+		//Render HTML if requested
 		if(acceptType == MediaType.TEXT_HTML) {
 			byte[] reportHtml = javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
 			return new ResponseEntity<byte[]>(new byte[1], new HttpHeaders(), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<TimeSeriesSummaryReport>(report, new HttpHeaders(), HttpStatus.OK);
 		}
-		
 	}
 }

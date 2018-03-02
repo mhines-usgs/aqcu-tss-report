@@ -17,7 +17,6 @@ import com.google.gson.GsonBuilder;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.*;
 
-import gov.usgs.aqcu.retrieval.TimeSeriesMetadataService;
 import gov.usgs.aqcu.retrieval.UpchainProcessorListService;
 import gov.usgs.aqcu.retrieval.RatingCurveListService;
 import gov.usgs.aqcu.retrieval.LocationDescriptionListService;
@@ -27,8 +26,6 @@ import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 import gov.usgs.aqcu.client.JavaToRClient;
 
 public class ControllerTest {
-	@Mock
-	private TimeSeriesMetadataService timeSeriesMetadataService;
 	@Mock
 	private UpchainProcessorListService upchainProcessorListService;
 	@Mock
@@ -41,5 +38,4 @@ public class ControllerTest {
 	private JavaToRClient client;
 	private Gson gson;
 	private TheController controller;
-	
 }

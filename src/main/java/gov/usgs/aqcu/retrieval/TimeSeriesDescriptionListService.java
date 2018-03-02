@@ -16,12 +16,10 @@ import net.servicestack.client.IReturn;
 import net.servicestack.client.WebServiceException;
 
 @Component
-public class TimeSeriesMetadataService extends AquariusRetrievalService {
-	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesMetadataService.class);
+public class TimeSeriesDescriptionListService extends AquariusRetrievalService {
+	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesDescriptionListService.class);
 
-	public TimeSeriesDescriptionListByUniqueIdServiceResponse get(String primaryTimeseriesIdentifier) throws Exception {
-		ArrayList<String> timeSeriesUniqueIds = new ArrayList<>(Arrays.asList(primaryTimeseriesIdentifier));
-
+	public TimeSeriesDescriptionListByUniqueIdServiceResponse get(ArrayList<String> timeSeriesUniqueIds) throws Exception {
 		TimeSeriesDescriptionListByUniqueIdServiceRequest request = new TimeSeriesDescriptionListByUniqueIdServiceRequest()
 				.setTimeSeriesUniqueIds(timeSeriesUniqueIds);
 		TimeSeriesDescriptionListByUniqueIdServiceResponse tssDesc = executePublishApiRequest(request);
