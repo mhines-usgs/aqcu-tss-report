@@ -42,7 +42,7 @@ public class ControllerTest {
 		MockitoAnnotations.initMocks(this);
 		controller = new TheController(timeSeriesMetadataService, upchainProcessorListService, ratingCurveListService, reportBuilderService, timeSeriesDataCorrectedService);
 	}
-	
+//	
 	@Test(expected = java.lang.NullPointerException.class)
 	public void noParametersTest() {
 		when(timeSeriesMetadataService.get(anyString())).thenReturn(null);

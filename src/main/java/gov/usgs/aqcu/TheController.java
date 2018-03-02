@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
 import com.google.gson.Gson;
 
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
@@ -30,6 +31,7 @@ public class TheController {
 	private static final Logger LOG = LoggerFactory.getLogger(TheController.class);
 	private Gson gson;
 	private TimeSeriesMetadataService timeSeriesMetadataService;
+	private TimeSeriesDataCorrectedService timeSeriesDataCorrectedService;
 	private RatingCurveListService ratingCurveListService;
 	private UpchainProcessorListService upchainProcessorListService;
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
@@ -38,12 +40,14 @@ public class TheController {
 	@Autowired
 	public TheController(
 		TimeSeriesMetadataService timeSeriesMetadataService, 
+		TimeSeriesDataCorrectedService timeSeriesDataCorrectedService,
 		UpchainProcessorListService upchainProcessorListService, 
 		RatingCurveListService ratingCurveListService,
 		TimeSeriesSummaryReportBuilderService reportBuilderService,
 		JavaToRClient javaToRClient,
 		Gson gson) {
 		this.timeSeriesMetadataService = timeSeriesMetadataService;
+		this.timeSeriesDataCorrectedService = timeSeriesDataCorrectedService;
 		this.upchainProcessorListService = upchainProcessorListService;
 		this.ratingCurveListService = ratingCurveListService;
 		this.reportBuilderService = reportBuilderService;
@@ -74,7 +78,7 @@ public class TheController {
 
 		//Fetch Time Series Descriptions
 		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesMetadataService.get(primaryTimeseriesIdentifier);
-		
+		TimeSeriesDataServiceResponse timeSeriesResponse = timeSeriesDataCorrectedService.get(primaryTimeseriesIdentifier, startDate, endDate);
 		//Fetch Location Descriptions
 
 
@@ -88,6 +92,6 @@ public class TheController {
 		}
 
 		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse, startDate, endDate, requestingUser);
+		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse, timeSeriesResponse, startDate, endDate, requestingUser);
 
 		return javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
