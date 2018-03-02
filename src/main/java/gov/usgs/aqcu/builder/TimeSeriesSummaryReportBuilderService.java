@@ -48,7 +48,7 @@ public class TimeSeriesSummaryReportBuilderService {
 			//Add Downchain TS Metadata
 			
 			//Add Primary TS Data
-			//report.setPrimaryTsData(createPrimaryTsData(primaryTimeseriesIdentifier, startDate, endDate));
+			report.setPrimaryTsData(createPrimaryTsData(primaryTimeseriesIdentifier, startDate, endDate));
 			
 			//Add Corrections
 			
@@ -80,9 +80,9 @@ public class TimeSeriesSummaryReportBuilderService {
 	}
 	
 	private TimeSeriesMetadata createPrimaryTsData (
-			String primaryTimeseriesIdentifier, 
-			Instant startDate, 
-			Instant endDate) {
+		String primaryTimeseriesIdentifier, 
+		Instant startDate, 
+		Instant endDate) {
 		TimeSeriesMetadata tsMetadata = new TimeSeriesMetadata();
 		
 		tsMetadata.setPrimaryTimeseriesIdentifier(primaryTimeseriesIdentifier);
