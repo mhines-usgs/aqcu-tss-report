@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.Set;
+import java.util.LinkedHashSet;
 import java.time.Instant;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
@@ -86,14 +88,16 @@ public class TimeSeriesSummaryReportBuilderService {
 		}
 		
 		//Fetch Timeseries Metadata
-		ArrayList<String> timeseriesIdentifiers = new ArrayList<>();
+		Set<String> timeseriesIdentifiers = new LinkedHashSet<>();
+		ArrayList<String> uniqueTimeseriesIdentifiers;
 		timeseriesIdentifiers.add(primaryTimeseriesIdentifier);
 		timeseriesIdentifiers.addAll(upchainIdentifierList);
 		timeseriesIdentifiers.addAll(downchainIdentifierList);
+		uniqueTimeseriesIdentifiers = new ArrayList<>(timeseriesIdentifiers);
 
 		//Parse Descriptions
 		TimeSeriesDescription primaryDescription = null;
-		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesDescriptionListService.get(timeseriesIdentifiers);
+		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesDescriptionListService.get(uniqueTimeseriesIdentifiers);
 		for(TimeSeriesDescription desc : metadataResponse.getTimeSeriesDescriptions()) {
 			if(desc.getIdentifier() == primaryTimeseriesIdentifier) {
 				primaryDescription = desc;
@@ -108,7 +112,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		
 		if(primaryDescription == null || upchainIdentifierList.size() != upchainDescriptions.size() || downchainIdentifierList.size() != downchainDescriptions.size()) {
 			String errorString = "Failed to fetch descriptions for all requested Time Series Identifiers: \nRequested: " + 
-				timeseriesIdentifiers.size() + "(" + String.join(",", timeseriesIdentifiers) + ")\nRecieved: " + metadataResponse.getTimeSeriesDescriptions().size();
+				uniqueTimeseriesIdentifiers.size() + "(" + String.join(",", uniqueTimeseriesIdentifiers) + ")\nRecieved: " + metadataResponse.getTimeSeriesDescriptions().size();
 			LOG.error(errorString);
 			//TODO: Change to more specific exception
 			throw new Exception(errorString);
