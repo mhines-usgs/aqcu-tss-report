@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.aquaticinformatics.aquarius.sdk.timeseries.AquariusClient;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GradeListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GradeListServiceRequest;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Grade;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GradeMetadata;
 
 import net.servicestack.client.IReturn;
@@ -27,7 +28,7 @@ public class GradeLookupService extends AquariusRetrievalService {
 		return gradeListResponse.getGrades();
 	}
 	
-	public List<GradeMetadata> get(List<String> includeIdentifiers) throws Exception {
+	public List<GradeMetadata> getByIdentifierList(List<String> includeIdentifiers) throws Exception {
 		List<GradeMetadata> filtered = new ArrayList<>();
 		List<GradeMetadata> metadataList = get();
 		for(GradeMetadata metadata : metadataList) {
@@ -37,5 +38,15 @@ public class GradeLookupService extends AquariusRetrievalService {
 		}
 		
 		return filtered;
+	}
+	
+	public List<GradeMetadata> getByGradeList(List<Grade> includeGrades) throws Exception {
+		List<String> gradeIdentifiers = new ArrayList<>();
+		
+		for(Grade grade : includeGrades) {
+			gradeIdentifiers.add(grade.getGradeCode());
+		}
+		
+		return getByIdentifierList(gradeIdentifiers);
 	}
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import com.aquaticinformatics.aquarius.sdk.timeseries.AquariusClient;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.QualifierListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.QualifierListServiceRequest;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Qualifier;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.QualifierMetadata;
 
 import net.servicestack.client.IReturn;
@@ -27,7 +28,7 @@ public class QualifierLookupService extends AquariusRetrievalService {
 		return qualifierListResponse.getQualifiers();
 	}
 	
-	public List<QualifierMetadata> get(List<String> includeIdentifiers) throws Exception {
+	public List<QualifierMetadata> getByIdentifierList(List<String> includeIdentifiers) throws Exception {
 		List<QualifierMetadata> filtered = new ArrayList<>();
 		List<QualifierMetadata> metadataList = get();
 		for(QualifierMetadata metadata : metadataList) {
@@ -37,5 +38,15 @@ public class QualifierLookupService extends AquariusRetrievalService {
 		}
 		
 		return filtered;
+	}
+	
+	public List<QualifierMetadata> getByQualifierList(List<Qualifier> includeQualifiers) throws Exception {
+		List<String> qualifierIdentifiers = new ArrayList<>();
+		
+		for(Qualifier qual : includeQualifiers) {
+			qualifierIdentifiers.add(qual.getIdentifier());
+		}
+		
+		return getByIdentifierList(qualifierIdentifiers);
 	}
 }

@@ -85,7 +85,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		Instant startDate,
 		Instant endDate,
 		String requestingUser) throws Exception {
-	
+
 		//Fetch Upchain Processors
 		ProcessorListServiceResponse upchainProcessorsResponse = upchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
 		List<Processor> upchainProcessorList = upchainProcessorsResponse.getProcessors();
@@ -94,7 +94,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		for(Processor proc : upchainProcessorList) {
 			upchainIdentifiers.addAll(proc.getInputTimeSeriesUniqueIds());
 		}
-		
+
 		//Fetch Downchain Processors
 		ProcessorListServiceResponse downchainProcessorsResponse = downchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
 		List<Processor> downchainProcessorList = downchainProcessorsResponse.getProcessors();
@@ -103,7 +103,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		for(Processor proc : downchainProcessorList) {
 			downchainIdentifiers.add(proc.getOutputTimeSeriesUniqueId());
 		}
-		
+
 		//Fetch Timeseries Metadata
 		Set<String> timeseriesIdentifiers = new LinkedHashSet<>();
 		ArrayList<String> uniqueTimeseriesIdentifiers;
@@ -126,7 +126,7 @@ public class TimeSeriesSummaryReportBuilderService {
 				LOG.error("Unknown Time Series Description returned from description list request: " + desc.getUniqueId());
 			}
 		}
-		
+
 		//Validate descriptions
 		if(primaryDescription == null || upchainIdentifiers.size() != upchainDescriptions.size() || downchainIdentifiers.size() != downchainDescriptions.size()) {
 			String errorString = "Failed to fetch descriptions for all requested Time Series Identifiers: \nRequested: " + 
@@ -136,11 +136,11 @@ public class TimeSeriesSummaryReportBuilderService {
 			//TODO: Change to more specific exception
 			throw new Exception(errorString);
 		}
-		
+
 		//Fetch Corrections
 		CorrectionListServiceResponse correctionsResponse = correctionListService.get(primaryTimeseriesIdentifier, startDate, endDate);
 		List<Correction> correctionList = correctionsResponse.getCorrections();
-		
+
 		//Fetch Location Descriptions
 		LocationDescriptionListServiceResponse locationResponse = locationDescriptionListService.get(primaryDescription.getLocationIdentifier());
 		LocationDescription locationDescription = locationResponse.getLocationDescriptions().get(0);	
@@ -151,14 +151,15 @@ public class TimeSeriesSummaryReportBuilderService {
 			RatingCurveListServiceResponse ratingCurvesResponse = ratingCurveListService.get(upchainProcessorList.get(0).getInputRatingModelIdentifier(), null, startDate, endDate);
 			ratingCurveList = ratingCurvesResponse.getRatingCurves();
 		}
-		
-		//Lookups
-		List<GradeMetadata> gradeMetadataList = gradeLookupService.get();
-		List<QualifierMetadata> qualifierMetadataList = qualifierLookupService.get();
-		
+
 		//Fetch Primary Series Data
 		TimeSeriesDataServiceResponse dataResponse = timeSeriesDataCorrectedService.get(primaryTimeseriesIdentifier, startDate, endDate);
+
+		//Additional Metadata Lookups
+		List<GradeMetadata> gradeMetadataList = gradeLookupService.getByGradeList(dataResponse.getGrades());
+		List<QualifierMetadata> qualifierMetadataList = qualifierLookupService.getByQualifierList(dataResponse.getQualifiers());
 		
+		//Build Report Object
 		TimeSeriesSummaryReport report = createReport(dataResponse, primaryDescription, upchainDescriptions, downchainDescriptions, locationDescription, upchainProcessorList, correctionList, ratingCurveList, gradeMetadataList, qualifierMetadataList, startDate, endDate, requestingUser);
 		
 		return report;
