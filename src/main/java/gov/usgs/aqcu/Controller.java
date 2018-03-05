@@ -25,8 +25,8 @@ import gov.usgs.aqcu.retrieval.UpchainProcessorListService;
 
 @RestController
 @RequestMapping("/timeseriessummary")
-public class TheController {
-	private static final Logger LOG = LoggerFactory.getLogger(TheController.class);
+public class Controller {
+	private static final Logger LOG = LoggerFactory.getLogger(Controller.class);
 	private Gson gson;
 	private TimeSeriesMetadataService timeSeriesMetadataService;
 	private RatingCurveListService ratingCurveListService;
@@ -35,7 +35,7 @@ public class TheController {
 	private JavaToRClient javaToRClient;
 
 	@Autowired
-	public TheController(
+	public Controller(
 		TimeSeriesMetadataService timeSeriesMetadataService, 
 		UpchainProcessorListService upchainProcessorListService, 
 		RatingCurveListService ratingCurveListService,
@@ -50,7 +50,7 @@ public class TheController {
 		this.gson = gson;
 	}
 
-	@GetMapping(produces="application/octet-stream")
+	@GetMapping(produces="text/html")
 	public byte[] getReport(
 			@RequestParam String primaryTimeseriesIdentifier,
 			@RequestParam String station,

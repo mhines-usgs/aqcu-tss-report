@@ -32,12 +32,12 @@ public class ControllerTest {
 	private RatingCurveListService ratingCurveListService;
 	@Mock
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
-	private TheController controller;
+	private Controller controller;
 
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		controller = new TheController(timeSeriesMetadataService, upchainProcessorListService, ratingCurveListService, reportBuilderService);
+		controller = new Controller(timeSeriesMetadataService, upchainProcessorListService, ratingCurveListService, reportBuilderService);
 	}
 	
 	@Test(expected = java.lang.NullPointerException.class)
