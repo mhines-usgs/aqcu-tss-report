@@ -27,6 +27,7 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Loca
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionListServiceResponse;
 
 import gov.usgs.aqcu.model.*;
 import gov.usgs.aqcu.retrieval.*;
@@ -42,6 +43,8 @@ public class TimeSeriesSummaryReportBuilderService {
 	private UpchainProcessorListService upchainProcessorListService;
 	private DownchainProcessorListService downchainProcessorListService;
 	private LocationDescriptionListService locationDescriptionListService;
+	private CorrectionListService correctionListService;
+	
 	
 	@Autowired
 	public TimeSeriesSummaryReportBuilderService(
@@ -51,6 +54,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		DownchainProcessorListService downchainProcessorListService,
 		RatingCurveListService ratingCurveListService,
 		LocationDescriptionListService locationDescriptionListService,
+		CorrectionListService correctionListService,
 		Gson gson) {
 			
 		this.timeSeriesDataCorrectedService = timeSeriesDataCorrectedService;
@@ -59,6 +63,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		this.downchainProcessorListService = downchainProcessorListService;
 		this.ratingCurveListService = ratingCurveListService;
 		this.locationDescriptionListService = locationDescriptionListService;
+		this.correctionListService = correctionListService;
 		this.gson = gson;
 	}
 
@@ -84,7 +89,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		Set<String> downchainIdentifiers = new LinkedHashSet<>();
 		List<TimeSeriesDescription> downchainDescriptions = new ArrayList<>();
 		for(Processor proc : downchainProcessorList) {
-			downchainIdentifiers.addAll(proc.getInputTimeSeriesUniqueIds());
+			downchainIdentifiers.add(proc.getOutputTimeSeriesUniqueId());
 		}
 		
 		//Fetch Timeseries Metadata
@@ -99,24 +104,30 @@ public class TimeSeriesSummaryReportBuilderService {
 		TimeSeriesDescription primaryDescription = null;
 		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesDescriptionListService.get(uniqueTimeseriesIdentifiers);
 		for(TimeSeriesDescription desc : metadataResponse.getTimeSeriesDescriptions()) {
-			if(desc.getIdentifier() == primaryTimeseriesIdentifier) {
+			if(desc.getUniqueId().equals(primaryTimeseriesIdentifier)) {
 				primaryDescription = desc;
-			} else if(upchainIdentifiers.contains(desc.getIdentifier())) {
+			} else if(upchainIdentifiers.contains(desc.getUniqueId())) {
 				upchainDescriptions.add(desc);
-			} else if(downchainIdentifiers.contains(desc.getIdentifier())) {
+			} else if(downchainIdentifiers.contains(desc.getUniqueId())) {
 				downchainDescriptions.add(desc);
 			} else {
-				LOG.error("Unknown Time Series Description returned from description list request: " + desc.getIdentifier());
+				LOG.error("Unknown Time Series Description returned from description list request: " + desc.getUniqueId());
 			}
 		}
 		
+		//Validate descriptions
 		if(primaryDescription == null || upchainIdentifiers.size() != upchainDescriptions.size() || downchainIdentifiers.size() != downchainDescriptions.size()) {
 			String errorString = "Failed to fetch descriptions for all requested Time Series Identifiers: \nRequested: " + 
-				uniqueTimeseriesIdentifiers.size() + "\nRecieved: " + metadataResponse.getTimeSeriesDescriptions().size();
+				uniqueTimeseriesIdentifiers.size() + "{\nPrimary: " + primaryTimeseriesIdentifier + "\nUpchain: " + String.join(",", upchainIdentifiers) + 
+				"\nDownchain: " + String.join(",", downchainIdentifiers) + "}\nRecieved: "  + metadataResponse.getTimeSeriesDescriptions().size();
 			LOG.error(errorString);
 			//TODO: Change to more specific exception
 			throw new Exception(errorString);
 		}
+		
+		//Fetch Corrections
+		CorrectionListServiceResponse correctionsResponse = correctionListService.get(primaryTimeseriesIdentifier, startDate, endDate);
+		List<Correction> correctionList = correctionsResponse.getCorrections();
 		
 		//Fetch Location Descriptions
 		LocationDescriptionListServiceResponse locationResponse = locationDescriptionListService.get(primaryDescription.getLocationIdentifier());
@@ -132,7 +143,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		//Fetch Primary Series Data
 		TimeSeriesDataServiceResponse dataResponse = timeSeriesDataCorrectedService.get(primaryTimeseriesIdentifier, startDate, endDate);
 		
-		TimeSeriesSummaryReport report = createReport(dataResponse, primaryDescription, upchainDescriptions, downchainDescriptions, locationDescription, upchainProcessorList, null, ratingCurveList, startDate, endDate, requestingUser);
+		TimeSeriesSummaryReport report = createReport(dataResponse, primaryDescription, upchainDescriptions, downchainDescriptions, locationDescription, upchainProcessorList, correctionList, ratingCurveList, startDate, endDate, requestingUser);
 		
 		return report;
 	}

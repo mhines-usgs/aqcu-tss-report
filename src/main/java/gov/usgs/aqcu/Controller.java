@@ -53,26 +53,20 @@ public class Controller {
 			@RequestParam String primaryTimeseriesIdentifier,
 			@RequestParam(required=true) @DateTimeFormat(pattern=InstantDeserializer.Pattern) Instant startDate,
 			@RequestParam(required=true) @DateTimeFormat(pattern=InstantDeserializer.Pattern) Instant endDate,
-			@RequestParam(required=false) String excludedCorrections,
-			@RequestHeader("Accept") MediaType acceptType) throws Exception {
+			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
 		//Pull Requesting User From Headers
 		String requestingUser = "testUser";
-
-		//Parse Excluded Corrections
-		List<String> excludedCorrectionsList = null;
-		if(excludedCorrections != null && excludedCorrections.length() >0) {
-			excludedCorrectionsList = Arrays.asList(excludedCorrections.split(","));
-		}
-
+		
 		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrectionsList, startDate, endDate, requestingUser);
+		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, startDate, endDate, requestingUser);
 			
 		//Render HTML if requested
-		if(acceptType == MediaType.TEXT_HTML) {
+		/*if(acceptType == MediaType.TEXT_HTML) {
 			byte[] reportHtml = javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
 			return new ResponseEntity<byte[]>(new byte[1], new HttpHeaders(), HttpStatus.OK);
 		} else {
 			return new ResponseEntity<TimeSeriesSummaryReport>(report, new HttpHeaders(), HttpStatus.OK);
-		}
+		}*/
+		return new ResponseEntity<TimeSeriesSummaryReport>(report, new HttpHeaders(), HttpStatus.OK);
 	}
 }
