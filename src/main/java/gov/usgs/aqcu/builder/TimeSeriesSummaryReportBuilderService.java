@@ -91,10 +91,28 @@ public class TimeSeriesSummaryReportBuilderService {
 		timeseriesIdentifiers.addAll(upchainIdentifierList);
 		timeseriesIdentifiers.addAll(downchainIdentifierList);
 
+		//Parse Descriptions
+		TimeSeriesDescription primaryDescription = null;
 		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesDescriptionListService.get(timeseriesIdentifiers);
-		TimeSeriesDescription primaryDescription = metadataResponse.getTimeSeriesDescriptions().get(0);
+		for(TimeSeriesDescription desc : metadataResponse.getTimeSeriesDescriptions()) {
+			if(desc.getIdentifier() == primaryTimeseriesIdentifier) {
+				primaryDescription = desc;
+			} else if(upchainIdentifierList.contains(desc.getIdentifier())) {
+				upchainDescriptions.add(desc);
+			} else if(downchainIdentifierList.contains(desc.getIdentifier())) {
+				downchainDescriptions.add(desc);
+			} else {
+				LOG.error("Unknown Time Series Description returned from description list request: " + desc.getIdentifier());
+			}
+		}
 		
-		LOG.error(gson.toJson(metadataResponse));
+		if(primaryDescription == null || upchainIdentifierList.size() != upchainDescriptions.size() || downchainIdentifierList.size() != downchainDescriptions.size()) {
+			String errorString = "Failed to fetch descriptions for all requested Time Series Identifiers: \nRequested: " + 
+				timeseriesIdentifiers.size() + "(" + String.join(",", timeseriesIdentifiers) + ")\nRecieved: " + metadataResponse.getTimeSeriesDescriptions().size();
+			LOG.error(errorString);
+			//TODO: Change to more specific exception
+			throw new Exception(errorString);
+		}
 		
 		//Fetch Location Descriptions
 		LocationDescriptionListServiceResponse locationResponse = locationDescriptionListService.get(primaryDescription.getLocationIdentifier());

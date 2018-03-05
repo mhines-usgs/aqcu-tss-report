@@ -32,14 +32,14 @@ import gov.usgs.aqcu.exception.AquariusException;
 @RestController
 @Validated
 @RequestMapping("/timeseriessummary")
-public class TheController {
-	private static final Logger LOG = LoggerFactory.getLogger(TheController.class);
+public class Controller {
+	private static final Logger LOG = LoggerFactory.getLogger(Controller.class);
 	private Gson gson;
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
 	private JavaToRClient javaToRClient;
 
 	@Autowired
-	public TheController(
+	public Controller(
 		TimeSeriesSummaryReportBuilderService reportBuilderService,
 		JavaToRClient javaToRClient,
 		Gson gson) {
