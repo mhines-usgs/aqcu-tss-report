@@ -72,27 +72,27 @@ public class TimeSeriesSummaryReportBuilderService {
 		//Fetch Upchain Processors
 		ProcessorListServiceResponse upchainProcessorsResponse = upchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
 		List<Processor> upchainProcessorList = upchainProcessorsResponse.getProcessors();
-		List<String> upchainIdentifierList = new ArrayList<>();
+		Set<String> upchainIdentifiers = new LinkedHashSet<>();
 		List<TimeSeriesDescription> upchainDescriptions = new ArrayList<>();
 		for(Processor proc : upchainProcessorList) {
-			upchainIdentifierList.addAll(proc.getInputTimeSeriesUniqueIds());
+			upchainIdentifiers.addAll(proc.getInputTimeSeriesUniqueIds());
 		}
 		
 		//Fetch Downchain Processors
 		ProcessorListServiceResponse downchainProcessorsResponse = downchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
 		List<Processor> downchainProcessorList = downchainProcessorsResponse.getProcessors();
-		List<String> downchainIdentifierList = new ArrayList<>();
+		Set<String> downchainIdentifiers = new LinkedHashSet<>();
 		List<TimeSeriesDescription> downchainDescriptions = new ArrayList<>();
 		for(Processor proc : downchainProcessorList) {
-			downchainIdentifierList.addAll(proc.getInputTimeSeriesUniqueIds());
+			downchainIdentifiers.addAll(proc.getInputTimeSeriesUniqueIds());
 		}
 		
 		//Fetch Timeseries Metadata
 		Set<String> timeseriesIdentifiers = new LinkedHashSet<>();
 		ArrayList<String> uniqueTimeseriesIdentifiers;
 		timeseriesIdentifiers.add(primaryTimeseriesIdentifier);
-		timeseriesIdentifiers.addAll(upchainIdentifierList);
-		timeseriesIdentifiers.addAll(downchainIdentifierList);
+		timeseriesIdentifiers.addAll(upchainIdentifiers);
+		timeseriesIdentifiers.addAll(downchainIdentifiers);
 		uniqueTimeseriesIdentifiers = new ArrayList<>(timeseriesIdentifiers);
 
 		//Parse Descriptions
@@ -101,18 +101,18 @@ public class TimeSeriesSummaryReportBuilderService {
 		for(TimeSeriesDescription desc : metadataResponse.getTimeSeriesDescriptions()) {
 			if(desc.getIdentifier() == primaryTimeseriesIdentifier) {
 				primaryDescription = desc;
-			} else if(upchainIdentifierList.contains(desc.getIdentifier())) {
+			} else if(upchainIdentifiers.contains(desc.getIdentifier())) {
 				upchainDescriptions.add(desc);
-			} else if(downchainIdentifierList.contains(desc.getIdentifier())) {
+			} else if(downchainIdentifiers.contains(desc.getIdentifier())) {
 				downchainDescriptions.add(desc);
 			} else {
 				LOG.error("Unknown Time Series Description returned from description list request: " + desc.getIdentifier());
 			}
 		}
 		
-		if(primaryDescription == null || upchainIdentifierList.size() != upchainDescriptions.size() || downchainIdentifierList.size() != downchainDescriptions.size()) {
+		if(primaryDescription == null || upchainIdentifiers.size() != upchainDescriptions.size() || downchainIdentifiers.size() != downchainDescriptions.size()) {
 			String errorString = "Failed to fetch descriptions for all requested Time Series Identifiers: \nRequested: " + 
-				uniqueTimeseriesIdentifiers.size() + "(" + String.join(",", uniqueTimeseriesIdentifiers) + ")\nRecieved: " + metadataResponse.getTimeSeriesDescriptions().size();
+				uniqueTimeseriesIdentifiers.size() + "\nRecieved: " + metadataResponse.getTimeSeriesDescriptions().size();
 			LOG.error(errorString);
 			//TODO: Change to more specific exception
 			throw new Exception(errorString);
