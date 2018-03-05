@@ -48,7 +48,7 @@ public class Controller {
 		this.gson = gson;
 	}
 	
-	@GetMapping(produces={MediaType.APPLICATION_JSON_VALUE,MediaType.TEXT_HTML_VALUE})
+	@GetMapping(produces={MediaType.TEXT_HTML_VALUE})
 	public ResponseEntity<?> getReport(
 			@RequestParam String primaryTimeseriesIdentifier,
 			@RequestParam(required=true) @DateTimeFormat(pattern=InstantDeserializer.Pattern) Instant startDate,
@@ -59,14 +59,23 @@ public class Controller {
 		
 		//Build the TSS Report JSON
 		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, startDate, endDate, requestingUser);
-			
-		//Render HTML if requested
-		/*if(acceptType == MediaType.TEXT_HTML) {
-			byte[] reportHtml = javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
-			return new ResponseEntity<byte[]>(new byte[1], new HttpHeaders(), HttpStatus.OK);
-		} else {
-			return new ResponseEntity<TimeSeriesSummaryReport>(report, new HttpHeaders(), HttpStatus.OK);
-		}*/
+		
+		byte[] reportHtml = javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
+		return new ResponseEntity<byte[]>(reportHtml, new HttpHeaders(), HttpStatus.OK);
+	}
+	
+	@GetMapping(value="/rawData", produces={MediaType.APPLICATION_JSON_VALUE})
+	public ResponseEntity<TimeSeriesSummaryReport> getReportRawData(
+			@RequestParam String primaryTimeseriesIdentifier,
+			@RequestParam(required=true) @DateTimeFormat(pattern=InstantDeserializer.Pattern) Instant startDate,
+			@RequestParam(required=true) @DateTimeFormat(pattern=InstantDeserializer.Pattern) Instant endDate,
+			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
+		//Pull Requesting User From Headers
+		String requestingUser = "testUser";
+		
+		//Build the TSS Report JSON
+		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, startDate, endDate, requestingUser);
+		
 		return new ResponseEntity<TimeSeriesSummaryReport>(report, new HttpHeaders(), HttpStatus.OK);
 	}
 }

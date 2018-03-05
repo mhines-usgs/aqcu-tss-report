@@ -17,6 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Processor;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Correction;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Grade;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GradeMetadata;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Qualifier;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.QualifierMetadata;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionProcessingOrder;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShift;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShiftPoint;
@@ -28,6 +32,8 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Proc
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionListServiceResponse;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GradeListServiceResponse;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.QualifierListServiceResponse;
 
 import gov.usgs.aqcu.model.*;
 import gov.usgs.aqcu.retrieval.*;
@@ -44,6 +50,8 @@ public class TimeSeriesSummaryReportBuilderService {
 	private DownchainProcessorListService downchainProcessorListService;
 	private LocationDescriptionListService locationDescriptionListService;
 	private CorrectionListService correctionListService;
+	private GradeLookupService gradeLookupService;
+	private QualifierLookupService qualifierLookupService;
 	
 	
 	@Autowired
@@ -55,6 +63,8 @@ public class TimeSeriesSummaryReportBuilderService {
 		RatingCurveListService ratingCurveListService,
 		LocationDescriptionListService locationDescriptionListService,
 		CorrectionListService correctionListService,
+		GradeLookupService gradeLookupService,
+		QualifierLookupService qualifierLookupService,
 		Gson gson) {
 			
 		this.timeSeriesDataCorrectedService = timeSeriesDataCorrectedService;
@@ -64,6 +74,8 @@ public class TimeSeriesSummaryReportBuilderService {
 		this.ratingCurveListService = ratingCurveListService;
 		this.locationDescriptionListService = locationDescriptionListService;
 		this.correctionListService = correctionListService;
+		this.gradeLookupService = gradeLookupService;
+		this.qualifierLookupService = qualifierLookupService;
 		this.gson = gson;
 	}
 
@@ -140,10 +152,14 @@ public class TimeSeriesSummaryReportBuilderService {
 			ratingCurveList = ratingCurvesResponse.getRatingCurves();
 		}
 		
+		//Lookups
+		List<GradeMetadata> gradeMetadataList = gradeLookupService.get();
+		List<QualifierMetadata> qualifierMetadataList = qualifierLookupService.get();
+		
 		//Fetch Primary Series Data
 		TimeSeriesDataServiceResponse dataResponse = timeSeriesDataCorrectedService.get(primaryTimeseriesIdentifier, startDate, endDate);
 		
-		TimeSeriesSummaryReport report = createReport(dataResponse, primaryDescription, upchainDescriptions, downchainDescriptions, locationDescription, upchainProcessorList, correctionList, ratingCurveList, startDate, endDate, requestingUser);
+		TimeSeriesSummaryReport report = createReport(dataResponse, primaryDescription, upchainDescriptions, downchainDescriptions, locationDescription, upchainProcessorList, correctionList, ratingCurveList, gradeMetadataList, qualifierMetadataList, startDate, endDate, requestingUser);
 		
 		return report;
 	}
@@ -157,13 +173,15 @@ public class TimeSeriesSummaryReportBuilderService {
 		List<Processor> upchainProcessorList,
 		List<Correction> correctionsList,
 		List<RatingCurve> ratingCurveList,
+		List<GradeMetadata> gradeMetadataList,
+		List<QualifierMetadata> qualifierMetadataList,
 		Instant startDate,
 		Instant endDate,
 		String requestingUser) {			
 			TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
 			
 			//Add Report Metadata
-			report.setReportMetadata(createTimeSeriesSummaryMetadata(primaryDescription, locationDescription, startDate, endDate, requestingUser));
+			report.setReportMetadata(createTimeSeriesSummaryMetadata(primaryDescription, locationDescription, gradeMetadataList, qualifierMetadataList, startDate, endDate, requestingUser));
 			
 			//Add Primary TS Data
 			report.setPrimaryTsData(createTimeSeriesSummaryCorrectedData(primaryDataResponse, upchainProcessorList, startDate, endDate));
@@ -186,7 +204,6 @@ public class TimeSeriesSummaryReportBuilderService {
 				report.setCorrections(createTimeSeriesSummaryCorrections(correctionsList));
 			}
 			
-			
 			//Add Rating Curve Data - If Applicable 
 			if(ratingCurveList != null && ratingCurveList.size() > 0) {
 				report.setRatingCurves(ratingCurveList);
@@ -199,6 +216,8 @@ public class TimeSeriesSummaryReportBuilderService {
 	private TimeSeriesSummaryMetadata createTimeSeriesSummaryMetadata(
 		TimeSeriesDescription primaryDescription,
 		LocationDescription locationDescription,
+		List<GradeMetadata> gradeMetadataList,
+		List<QualifierMetadata> qualifierMetadataList,
 		Instant startDate,
 		Instant endDate,
 		String requestingUser) {
@@ -212,7 +231,8 @@ public class TimeSeriesSummaryReportBuilderService {
 		metadata.setPrimaryParameter(primaryDescription.getIdentifier());
 		metadata.setStationName(locationDescription.getName());
 		metadata.setStationId(locationDescription.getIdentifier());
-		
+		metadata.setQualifierMetadata(qualifierMetadataList);
+		metadata.setGradeMetadata(gradeMetadataList);
 		return metadata;
 	}
 	
@@ -237,19 +257,18 @@ public class TimeSeriesSummaryReportBuilderService {
 		data.setQualifiers(response.getQualifiers());
 		data.setNotes(response.getNotes());
 		data.setMethods(response.getMethods());
-		data.setGrades(response.getGrades());
 		data.setGapTolerances(response.getGapTolerances());
 		data.setInterpolationTypes(response.getInterpolationTypes());
-		
+		data.setGrades(response.getGrades());
 		data.setProcessors(upchainProcessorList);
 		
 		//Calculate Gaps
-		
+		//TODO
 		
 		return data;
 	}
 	
-	public TimeSeriesSummaryCorrections createTimeSeriesSummaryCorrections(List<Correction> rawCorrections) {
+	private TimeSeriesSummaryCorrections createTimeSeriesSummaryCorrections(List<Correction> rawCorrections) {
 		TimeSeriesSummaryCorrections corrections = new TimeSeriesSummaryCorrections();
 		List<Correction> pre = new ArrayList<>();
 		List<Correction> normal = new ArrayList<>();
