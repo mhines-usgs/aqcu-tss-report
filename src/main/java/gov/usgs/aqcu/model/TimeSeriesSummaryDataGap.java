@@ -1,13 +1,14 @@
 package gov.usgs.aqcu.model;
 
 import java.time.Instant;
+import java.time.Duration;
 import java.math.BigDecimal;
 
 public class TimeSeriesSummaryDataGap {
-	private Instant startTime;
-	private Instant endTime;
-	private BigDecimal durationInHours;
-	private String gapExtent;
+	private Instant startTime = null;
+	private Instant endTime = null;
+	private BigDecimal durationInHours = null;
+	private TimeSeriesSummaryDataGapExtent gapExtent;
 	
 	public Instant getStartTime() {
 		return startTime;
@@ -17,7 +18,7 @@ public class TimeSeriesSummaryDataGap {
 		return endTime;
 	}
 	
-	public String getGapExtent() {
+	public TimeSeriesSummaryDataGapExtent getGapExtent() {
 		return gapExtent;
 	}
 	
@@ -27,17 +28,23 @@ public class TimeSeriesSummaryDataGap {
 	
 	public void setStartTime(Instant val) {
 		startTime= val;
+		calculateDurationInHours();
 	}
 	
 	public void setEndTime(Instant val) {
 		endTime = val;
+		calculateDurationInHours();
 	}
 	
-	public void setGapExtent(String val) {
+	public void setGapExtent(TimeSeriesSummaryDataGapExtent val) {
 		gapExtent = val;
 	}
 	
-	public void setDurationInHours(BigDecimal val) {
-		durationInHours = val;
+	public void calculateDurationInHours() {
+		if(startTime != null && endTime != null) {
+			durationInHours = BigDecimal.valueOf(Duration.between(startTime, endTime).getSeconds() / 3600.0);
+		} else {
+			durationInHours = null;
+		}
 	}
 }

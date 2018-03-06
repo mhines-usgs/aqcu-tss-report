@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.LinkedHashSet;
 import java.time.Instant;
+import java.lang.Math;
+import java.time.Duration;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,8 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Rati
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShiftPoint;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescription;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.LocationDescription;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GapTolerance;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesPoint;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.LocationDescriptionListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
@@ -154,13 +158,16 @@ public class TimeSeriesSummaryReportBuilderService {
 
 		//Fetch Primary Series Data
 		TimeSeriesDataServiceResponse dataResponse = timeSeriesDataCorrectedService.get(primaryTimeseriesIdentifier, startDate, endDate);
+		
+		//Calculate Gaps
+		List<TimeSeriesSummaryDataGap> gapList = createTimeSeriesSummaryDataGaps(dataResponse.getPoints(), dataResponse.getGapTolerances(), primaryDescription.getRawStartTime(), primaryDescription.getRawEndTime(), startDate, endDate);
 
 		//Additional Metadata Lookups
 		List<GradeMetadata> gradeMetadataList = gradeLookupService.getByGradeList(dataResponse.getGrades());
 		List<QualifierMetadata> qualifierMetadataList = qualifierLookupService.getByQualifierList(dataResponse.getQualifiers());
 		
 		//Build Report Object
-		TimeSeriesSummaryReport report = createReport(dataResponse, primaryDescription, upchainDescriptions, downchainDescriptions, locationDescription, upchainProcessorList, correctionList, ratingCurveList, gradeMetadataList, qualifierMetadataList, startDate, endDate, requestingUser);
+		TimeSeriesSummaryReport report = createReport(dataResponse, primaryDescription, upchainDescriptions, downchainDescriptions, locationDescription, upchainProcessorList, correctionList, ratingCurveList, gradeMetadataList, qualifierMetadataList, gapList, startDate, endDate, requestingUser);
 		
 		return report;
 	}
@@ -176,6 +183,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		List<RatingCurve> ratingCurveList,
 		List<GradeMetadata> gradeMetadataList,
 		List<QualifierMetadata> qualifierMetadataList,
+		List<TimeSeriesSummaryDataGap> gapList,
 		Instant startDate,
 		Instant endDate,
 		String requestingUser) {			
@@ -185,7 +193,7 @@ public class TimeSeriesSummaryReportBuilderService {
 			report.setReportMetadata(createTimeSeriesSummaryMetadata(primaryDescription, locationDescription, gradeMetadataList, qualifierMetadataList, startDate, endDate, requestingUser));
 			
 			//Add Primary TS Data
-			report.setPrimaryTsData(createTimeSeriesSummaryCorrectedData(primaryDataResponse, upchainProcessorList, startDate, endDate));
+			report.setPrimaryTsData(createTimeSeriesSummaryCorrectedData(primaryDataResponse, upchainProcessorList, gapList, startDate, endDate));
 			
 			//Add Primary TS Metadata
 			report.setPrimaryTsMetadata(primaryDescription);
@@ -250,7 +258,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		return series;
 	}
 	
-	private TimeSeriesSummaryCorrectedData createTimeSeriesSummaryCorrectedData(TimeSeriesDataServiceResponse response, List<Processor> upchainProcessorList, Instant startDate, Instant endDate) {
+	private TimeSeriesSummaryCorrectedData createTimeSeriesSummaryCorrectedData(TimeSeriesDataServiceResponse response, List<Processor> upchainProcessorList, List<TimeSeriesSummaryDataGap> gapList, Instant startDate, Instant endDate) {
 		TimeSeriesSummaryCorrectedData data = new TimeSeriesSummaryCorrectedData();
 		
 		//Copy Desired Fields
@@ -262,11 +270,43 @@ public class TimeSeriesSummaryReportBuilderService {
 		data.setInterpolationTypes(response.getInterpolationTypes());
 		data.setGrades(response.getGrades());
 		data.setProcessors(upchainProcessorList);
-		
-		//Calculate Gaps
-		//TODO
+		data.setGaps(gapList);
 		
 		return data;
+	}
+	
+	private List<TimeSeriesSummaryDataGap> createTimeSeriesSummaryDataGaps(List<TimeSeriesPoint> timeSeriesPoints, List<GapTolerance> gapTolerances, Instant seriesStartDate, Instant seriesEndDate, Instant startDate, Instant endDate) {
+		List<TimeSeriesSummaryDataGap> gapList = new ArrayList<>();
+				
+		for(int i = 0; i < timeSeriesPoints.size(); i++) {
+			TimeSeriesPoint point = timeSeriesPoints.get(i);
+			Instant time = timeSeriesPoints.get(i).getTimestamp().getDateTimeOffset();
+			Instant preTime = (i > 0) ?  timeSeriesPoints.get(i-1).getTimestamp().getDateTimeOffset() : null;
+			Instant postTime = (i < (timeSeriesPoints.size() -1)) ? timeSeriesPoints.get(i+1).getTimestamp().getDateTimeOffset() : null;
+			Boolean gapContained = false;
+			
+			if(point.getValue().getNumeric() == null) {
+				//Gap Marker Found
+				TimeSeriesSummaryDataGap gap = new TimeSeriesSummaryDataGap();
+				gap.setStartTime(preTime);
+				gap.setEndTime(postTime);
+				
+				//Determine where this gap is
+				if(preTime != null && postTime != null) {
+					gap.setGapExtent(TimeSeriesSummaryDataGapExtent.CONTAINED);
+				} else if(preTime == null) {
+					gap.setGapExtent(TimeSeriesSummaryDataGapExtent.OVER_START);
+				} else if(postTime == null) {
+					gap.setGapExtent(TimeSeriesSummaryDataGapExtent.OVER_END);
+				} else {
+					gap.setGapExtent(TimeSeriesSummaryDataGapExtent.OVER_ALL);
+				}
+				
+				gapList.add(gap);
+			}
+		}
+		
+		return gapList;
 	}
 	
 	private TimeSeriesSummaryCorrections createTimeSeriesSummaryCorrections(List<Correction> rawCorrections) {

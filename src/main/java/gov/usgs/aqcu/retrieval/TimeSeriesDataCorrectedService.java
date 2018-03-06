@@ -21,6 +21,7 @@ public class TimeSeriesDataCorrectedService extends AquariusRetrievalService {
 		TimeSeriesDataCorrectedServiceRequest request = new TimeSeriesDataCorrectedServiceRequest()
 				.setTimeSeriesUniqueId(primaryTimeseriesIdentifier)
 				.setQueryFrom(startDate)
+				.setIncludeGapMarkers(true)
 				.setQueryTo(endDate);
 		TimeSeriesDataServiceResponse timeSeriesResponse  = executePublishApiRequest(request);
 		return timeSeriesResponse;
