@@ -56,7 +56,7 @@ public class Controller {
 			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
 		//Pull Requesting User From Headers
 		String requestingUser = "testUser";
-		
+
 		//Build the TSS Report JSON
 		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, startDate, endDate, requestingUser);
 		

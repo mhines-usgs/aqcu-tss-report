@@ -1,6 +1,6 @@
 package gov.usgs.aqcu.model;
 
-public enum TimeSeriesSummaryDataGapExtent {
+public enum AqcuDataGapExtent {
 	CONTAINED,
 	OVER_START,
 	OVER_END,

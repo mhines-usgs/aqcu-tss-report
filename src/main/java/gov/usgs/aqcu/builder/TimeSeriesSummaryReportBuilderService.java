@@ -2,13 +2,16 @@ package gov.usgs.aqcu.builder;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.LinkedHashSet;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.lang.Math;
 import java.time.Duration;
+
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +31,6 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Rati
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShiftPoint;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescription;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.LocationDescription;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GapTolerance;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesPoint;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.LocationDescriptionListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
@@ -43,154 +44,119 @@ import gov.usgs.aqcu.model.*;
 import gov.usgs.aqcu.retrieval.*;
 
 @Component
-public class TimeSeriesSummaryReportBuilderService {	
+public class TimeSeriesSummaryReportBuilderService extends AqcuReportBuilderService {
+	public static final String REPORT_TITLE = "Time Series Summary";
+	public static final String REPORT_TYPE = "timeseriessummary";
 	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesSummaryReportBuilderService.class);
-	private final String BASE_URL = "http://temp/report/";
-	private Gson gson;
+	
 	private TimeSeriesDataCorrectedService timeSeriesDataCorrectedService;
-	private TimeSeriesDescriptionListService timeSeriesDescriptionListService;
 	private RatingCurveListService ratingCurveListService;
 	private UpchainProcessorListService upchainProcessorListService;
 	private DownchainProcessorListService downchainProcessorListService;
-	private LocationDescriptionListService locationDescriptionListService;
 	private CorrectionListService correctionListService;
-	private GradeLookupService gradeLookupService;
-	private QualifierLookupService qualifierLookupService;
-	
 	
 	@Autowired
 	public TimeSeriesSummaryReportBuilderService(
-		TimeSeriesDataCorrectedService timeSeriesDataCorrectedService,
+		Gson gson, 
+		AqcuReportMetadataBuilderService reportMetadataBuilderService,
+		AqcuDataGapListBuilderService dataGapListBuilderService,
+		AqcuReportUrlBuilderService reportUrlBuilderService,
+		GradeLookupService gradeLookupService, 
+		QualifierLookupService qualifierLookupService,
+		LocationDescriptionListService locationDescriptionListService,
 		TimeSeriesDescriptionListService timeSeriesDescriptionListService,
+		TimeSeriesDataCorrectedService timeSeriesDataCorrectedService,
 		UpchainProcessorListService upchainProcessorListService,
 		DownchainProcessorListService downchainProcessorListService,
 		RatingCurveListService ratingCurveListService,
-		LocationDescriptionListService locationDescriptionListService,
-		CorrectionListService correctionListService,
-		GradeLookupService gradeLookupService,
-		QualifierLookupService qualifierLookupService,
-		Gson gson) {
-			
+		CorrectionListService correctionListService) {
+		super(gson, reportMetadataBuilderService, dataGapListBuilderService, reportUrlBuilderService, gradeLookupService, qualifierLookupService, locationDescriptionListService, timeSeriesDescriptionListService);
 		this.timeSeriesDataCorrectedService = timeSeriesDataCorrectedService;
-		this.timeSeriesDescriptionListService = timeSeriesDescriptionListService;
 		this.upchainProcessorListService = upchainProcessorListService;
 		this.downchainProcessorListService = downchainProcessorListService;
 		this.ratingCurveListService = ratingCurveListService;
-		this.locationDescriptionListService = locationDescriptionListService;
 		this.correctionListService = correctionListService;
-		this.gradeLookupService = gradeLookupService;
-		this.qualifierLookupService = qualifierLookupService;
-		this.gson = gson;
 	}
 
-	public TimeSeriesSummaryReport buildReport( 
-		String primaryTimeseriesIdentifier,
-		List<String> excludedCorrections,
-		Instant startDate,
-		Instant endDate,
-		String requestingUser) throws Exception {
-
-		//Fetch Upchain Processors
-		ProcessorListServiceResponse upchainProcessorsResponse = upchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
+	public TimeSeriesSummaryReport buildReport(String primaryTimeseriesIdentifier, List<String> excludedCorrections, Instant startDate, Instant endDate, String requestingUser) throws Exception {
+		//Downchain TS Unique Ids
+		List<String> downchainUniqueIdList = downchainProcessorListService.getOutputTimeSeriesUniqueIdList(primaryTimeseriesIdentifier, startDate, endDate);
+		
+		//Upchain Processors, TS Unique Ids, and Rating Model Ids
+		ProcessorListServiceResponse upchainProcessorsResponse = upchainProcessorListService.getRawResponse(primaryTimeseriesIdentifier, startDate, endDate);
 		List<Processor> upchainProcessorList = upchainProcessorsResponse.getProcessors();
-		Set<String> upchainIdentifiers = new LinkedHashSet<>();
-		List<TimeSeriesDescription> upchainDescriptions = new ArrayList<>();
-		for(Processor proc : upchainProcessorList) {
-			upchainIdentifiers.addAll(proc.getInputTimeSeriesUniqueIds());
-		}
-
-		//Fetch Downchain Processors
-		ProcessorListServiceResponse downchainProcessorsResponse = downchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
-		List<Processor> downchainProcessorList = downchainProcessorsResponse.getProcessors();
-		Set<String> downchainIdentifiers = new LinkedHashSet<>();
-		List<TimeSeriesDescription> downchainDescriptions = new ArrayList<>();
-		for(Processor proc : downchainProcessorList) {
-			downchainIdentifiers.add(proc.getOutputTimeSeriesUniqueId());
-		}
-
-		//Fetch Timeseries Metadata
-		Set<String> timeseriesIdentifiers = new LinkedHashSet<>();
-		ArrayList<String> uniqueTimeseriesIdentifiers;
-		timeseriesIdentifiers.add(primaryTimeseriesIdentifier);
-		timeseriesIdentifiers.addAll(upchainIdentifiers);
-		timeseriesIdentifiers.addAll(downchainIdentifiers);
-		uniqueTimeseriesIdentifiers = new ArrayList<>(timeseriesIdentifiers);
-
-		//Parse Descriptions
-		TimeSeriesDescription primaryDescription = null;
-		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesDescriptionListService.get(uniqueTimeseriesIdentifiers);
-		for(TimeSeriesDescription desc : metadataResponse.getTimeSeriesDescriptions()) {
-			if(desc.getUniqueId().equals(primaryTimeseriesIdentifier)) {
-				primaryDescription = desc;
-			} else if(upchainIdentifiers.contains(desc.getUniqueId())) {
-				upchainDescriptions.add(desc);
-			} else if(downchainIdentifiers.contains(desc.getUniqueId())) {
-				downchainDescriptions.add(desc);
-			} else {
-				LOG.error("Unknown Time Series Description returned from description list request: " + desc.getUniqueId());
-			}
-		}
-
-		//Validate descriptions
-		if(primaryDescription == null || upchainIdentifiers.size() != upchainDescriptions.size() || downchainIdentifiers.size() != downchainDescriptions.size()) {
-			String errorString = "Failed to fetch descriptions for all requested Time Series Identifiers: \nRequested: " + 
-				uniqueTimeseriesIdentifiers.size() + "{\nPrimary: " + primaryTimeseriesIdentifier + "\nUpchain: " + String.join(",", upchainIdentifiers) + 
-				"\nDownchain: " + String.join(",", downchainIdentifiers) + "}\nRecieved: "  + metadataResponse.getTimeSeriesDescriptions().size();
-			LOG.error(errorString);
-			//TODO: Change to more specific exception
-			throw new Exception(errorString);
-		}
-
-		//Fetch Corrections
-		CorrectionListServiceResponse correctionsResponse = correctionListService.get(primaryTimeseriesIdentifier, startDate, endDate);
-		List<Correction> correctionList = correctionsResponse.getCorrections();
-
-		//Fetch Location Descriptions
-		LocationDescriptionListServiceResponse locationResponse = locationDescriptionListService.get(primaryDescription.getLocationIdentifier());
-		LocationDescription locationDescription = locationResponse.getLocationDescriptions().get(0);	
-
-		//Fetch Rating Curves IFF we got at least one upchain processor to pull the rating model identifier from
+		List<String> upchainUniqueIdList = upchainProcessorListService.getInputTimeSeriesUniqueIdList(upchainProcessorsResponse);
+		List<String> ratingModelUniqueIdList = upchainProcessorListService.getRatingModelUniqueIdList(upchainProcessorsResponse);
+		String primaryRatingModelUniqueId = (ratingModelUniqueIdList != null && ratingModelUniqueIdList.size() > 0) ? ratingModelUniqueIdList.get(0) : null;
+		
+		//Filtered Rating Curves
 		List<RatingCurve> ratingCurveList = null;
-		if(upchainProcessorList.size() > 0 && upchainProcessorList.get(0).getInputRatingModelIdentifier() != null && upchainProcessorList.get(0).getInputRatingModelIdentifier().length() > 0) {
-			RatingCurveListServiceResponse ratingCurvesResponse = ratingCurveListService.get(upchainProcessorList.get(0).getInputRatingModelIdentifier(), null, startDate, endDate);
-			ratingCurveList = ratingCurvesResponse.getRatingCurves();
+		if(primaryRatingModelUniqueId != null) {
+			ratingCurveList = ratingCurveListService.getRawResponse(primaryRatingModelUniqueId, null, startDate, endDate).getRatingCurves();
 		}
-
-		//Fetch Primary Series Data
+		
+		//Filtered Corrections
+		List<AqcuExtendedCorrection> correctionList = correctionListService.getAqcuExtendedCorrectionList(primaryTimeseriesIdentifier, startDate, endDate, excludedCorrections);
+		
+		//Primary Corrected Data
 		TimeSeriesDataServiceResponse dataResponse = timeSeriesDataCorrectedService.get(primaryTimeseriesIdentifier, startDate, endDate);
 		
-		//Calculate Gaps
-		List<TimeSeriesSummaryDataGap> gapList = createTimeSeriesSummaryDataGaps(dataResponse.getPoints(), dataResponse.getGapTolerances(), primaryDescription.getRawStartTime(), primaryDescription.getRawEndTime(), startDate, endDate);
-
-		//Additional Metadata Lookups
+		//Calculate Data Gaps
+		List<AqcuDataGap> gapList = dataGapListBuilderService.buildGapList(dataResponse.getPoints(), startDate, endDate);
+		
+		//Metadata Lookups
 		List<GradeMetadata> gradeMetadataList = gradeLookupService.getByGradeList(dataResponse.getGrades());
 		List<QualifierMetadata> qualifierMetadataList = qualifierLookupService.getByQualifierList(dataResponse.getQualifiers());
 		
+		//Primary Description, Upchain Descriptions, and Downchain Descriptions
+		Map<String,List<String>> batchDescriptionRequestMap = new HashMap<>();
+		batchDescriptionRequestMap.put("primary",Collections.singletonList(primaryTimeseriesIdentifier));
+		batchDescriptionRequestMap.put("upchain", upchainUniqueIdList);
+		batchDescriptionRequestMap.put("downchain", downchainUniqueIdList);
+		Map<String,List<TimeSeriesDescription>> batchDescriptionResultMap = timeSeriesDescriptionListService.getBatchTimeSeriesDescriptionLists(batchDescriptionRequestMap);
+		TimeSeriesDescription primaryDescription = batchDescriptionResultMap.get("primary").get(0);
+		List<TimeSeriesDescription> upchainDescriptions = batchDescriptionResultMap.get("upchain");
+		List<TimeSeriesDescription> downchainDescriptions = batchDescriptionResultMap.get("downchain");
+
+		//Location Description
+		LocationDescription locationDescription = locationDescriptionListService.getFirstLocationDescription(primaryDescription.getLocationIdentifier());
+		
+		//Create Advanced Option URL Params
+		Map<String,String> urlParams = createUrlParameters(excludedCorrections);
+		
+		//Create Report Metadata
+		AqcuReportMetadata reportMetadata = reportMetadataBuilderService.createBaseReportMetadata(REPORT_TYPE, REPORT_TITLE, primaryTimeseriesIdentifier, primaryDescription.getIdentifier(), primaryDescription.getUtcOffset(), locationDescription.getName(), locationDescription.getIdentifier(), gradeMetadataList, qualifierMetadataList, startDate, endDate, urlParams, requestingUser);
+		
+		//Create Related Report URLs
+		String corrUrl = reportUrlBuilderService.buildAqcuReportUrl("correctionsataglance", startDate, endDate,  reportMetadata.getPrimaryTimeSeriesIdentifier(), reportMetadata.getStationId(), reportMetadata.getAdvancedOptions());
+		Map<String,String> upchainUrls = reportUrlBuilderService.buildAqcuReportUrlMapByUnqiueIdList("timeseriessummary", startDate, endDate, upchainUniqueIdList, reportMetadata.getStationId(), reportMetadata.getAdvancedOptions());
+		Map<String,String> downchainUrls = reportUrlBuilderService.buildAqcuReportUrlMapByUnqiueIdList("timeseriessummary", startDate, endDate, downchainUniqueIdList, reportMetadata.getStationId(), reportMetadata.getAdvancedOptions());
+		
 		//Build Report Object
-		TimeSeriesSummaryReport report = createReport(dataResponse, primaryDescription, upchainDescriptions, downchainDescriptions, locationDescription, upchainProcessorList, correctionList, ratingCurveList, gradeMetadataList, qualifierMetadataList, gapList, startDate, endDate, requestingUser);
+		TimeSeriesSummaryReport report = createReport(dataResponse, primaryDescription, upchainDescriptions, upchainUrls, downchainDescriptions, downchainUrls, upchainProcessorList, correctionList, corrUrl, ratingCurveList, gapList, startDate, endDate, reportMetadata);
 		
 		return report;
 	}
-	
+		
 	private TimeSeriesSummaryReport createReport (
 		TimeSeriesDataServiceResponse primaryDataResponse,
 		TimeSeriesDescription primaryDescription,
 		List<TimeSeriesDescription> upchainDescriptions,
+		Map<String,String> upchainUrls,
 		List<TimeSeriesDescription> downchainDescriptions,
-		LocationDescription locationDescription,
+		Map<String,String> downchainUrls,
 		List<Processor> upchainProcessorList,
-		List<Correction> correctionsList,
+		List<AqcuExtendedCorrection> correctionList,
+		String corrUrl,
 		List<RatingCurve> ratingCurveList,
-		List<GradeMetadata> gradeMetadataList,
-		List<QualifierMetadata> qualifierMetadataList,
-		List<TimeSeriesSummaryDataGap> gapList,
+		List<AqcuDataGap> gapList,
 		Instant startDate,
 		Instant endDate,
-		String requestingUser) {			
+		AqcuReportMetadata reportMetadata) {			
 			TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
 			
 			//Add Report Metadata
-			report.setReportMetadata(createTimeSeriesSummaryMetadata(primaryDescription, locationDescription, gradeMetadataList, qualifierMetadataList, startDate, endDate, requestingUser));
+			report.setReportMetadata(reportMetadata);
 			
 			//Add Primary TS Data
 			report.setPrimaryTsData(createTimeSeriesSummaryCorrectedData(primaryDataResponse, upchainProcessorList, gapList, startDate, endDate));
@@ -200,65 +166,50 @@ public class TimeSeriesSummaryReportBuilderService {
 			
 			//Add Upchain TS Metadata
 			if(upchainDescriptions != null && upchainDescriptions.size() > 0) {
-				report.setUpchainTs(createTimeSeriesSummaryRelatedSeriesList(upchainDescriptions));
+				report.setUpchainTs(createTimeSeriesSummaryRelatedSeriesList(upchainDescriptions, upchainUrls));
 			}
 
 			//Add Downchain TS Metadata
 			if(downchainDescriptions != null && downchainDescriptions.size() > 0) {
-				report.setDownchainTs(createTimeSeriesSummaryRelatedSeriesList(downchainDescriptions));
+				report.setDownchainTs(createTimeSeriesSummaryRelatedSeriesList(downchainDescriptions, downchainUrls));
 			}
 
 			//Add Corrections
-			if(correctionsList!= null && correctionsList.size() > 0) {
-				report.setCorrections(createTimeSeriesSummaryCorrections(correctionsList));
-			}
-			
-			//Add Rating Curve Data - If Applicable 
+			report.setCorrections(createTimeSeriesSummaryCorrections(correctionList, corrUrl));
+		
+			//Add Rating Curve Data 
 			if(ratingCurveList != null && ratingCurveList.size() > 0) {
 				report.setRatingCurves(ratingCurveList);
-				report.setRatingShifts(createTimeSeriesSummaryRatingShifts(ratingCurveList));
+				report.setRatingShifts(createTimeSeriesSummaryRatingShifts(ratingCurveList, startDate, endDate));
 			}
 			
 			return report;
 	}
 	
-	private TimeSeriesSummaryMetadata createTimeSeriesSummaryMetadata(
-		TimeSeriesDescription primaryDescription,
-		LocationDescription locationDescription,
-		List<GradeMetadata> gradeMetadataList,
-		List<QualifierMetadata> qualifierMetadataList,
-		Instant startDate,
-		Instant endDate,
-		String requestingUser) {
-		TimeSeriesSummaryMetadata metadata = new TimeSeriesSummaryMetadata();
+	private Map<String,String> createUrlParameters(List<String> excludedCorrections) {
+		Map<String,String> urlParams = new HashMap<>();
 		
-		metadata.setRequestingUser(requestingUser);
-		metadata.setTimezone("Etc/GMT+" + (int)(-1 * primaryDescription.getUtcOffset()));
-		metadata.setStartDate(startDate);
-		metadata.setEndDate(endDate);
-		metadata.setTitle("Time Series Summary");
-		metadata.setPrimaryParameter(primaryDescription.getIdentifier());
-		metadata.setStationName(locationDescription.getName());
-		metadata.setStationId(locationDescription.getIdentifier());
-		metadata.setQualifierMetadata(qualifierMetadataList);
-		metadata.setGradeMetadata(gradeMetadataList);
-		return metadata;
+		if(excludedCorrections != null && excludedCorrections.size() > 0) {
+			urlParams.put("excludedCorrections", String.join(",", excludedCorrections));
+		}
+		
+		return urlParams;
 	}
 	
-	private List<TimeSeriesSummaryRelatedSeries> createTimeSeriesSummaryRelatedSeriesList(List<TimeSeriesDescription> descriptions) {
+	private List<TimeSeriesSummaryRelatedSeries> createTimeSeriesSummaryRelatedSeriesList(List<TimeSeriesDescription> descriptions, Map<String,String> reportUrls) {
 		List<TimeSeriesSummaryRelatedSeries> series = new ArrayList<>();
 		
 		for(TimeSeriesDescription desc : descriptions) {
 			TimeSeriesSummaryRelatedSeries newSeries = new TimeSeriesSummaryRelatedSeries();
 			newSeries.setIdentifier(desc.getIdentifier());
-			newSeries.setUrl(createReportURL("time-series-summary", new HashMap<String,String>()));
+			newSeries.setUrl(reportUrls.get(desc.getUniqueId()));
 			series.add(newSeries);
 		}
 		
 		return series;
 	}
 	
-	private TimeSeriesSummaryCorrectedData createTimeSeriesSummaryCorrectedData(TimeSeriesDataServiceResponse response, List<Processor> upchainProcessorList, List<TimeSeriesSummaryDataGap> gapList, Instant startDate, Instant endDate) {
+	private TimeSeriesSummaryCorrectedData createTimeSeriesSummaryCorrectedData(TimeSeriesDataServiceResponse response, List<Processor> upchainProcessorList, List<AqcuDataGap> gapList, Instant startDate, Instant endDate) {
 		TimeSeriesSummaryCorrectedData data = new TimeSeriesSummaryCorrectedData();
 		
 		//Copy Desired Fields
@@ -274,87 +225,46 @@ public class TimeSeriesSummaryReportBuilderService {
 		
 		return data;
 	}
-	
-	private List<TimeSeriesSummaryDataGap> createTimeSeriesSummaryDataGaps(List<TimeSeriesPoint> timeSeriesPoints, List<GapTolerance> gapTolerances, Instant seriesStartDate, Instant seriesEndDate, Instant startDate, Instant endDate) {
-		List<TimeSeriesSummaryDataGap> gapList = new ArrayList<>();
-				
-		for(int i = 0; i < timeSeriesPoints.size(); i++) {
-			TimeSeriesPoint point = timeSeriesPoints.get(i);
-			Instant time = timeSeriesPoints.get(i).getTimestamp().getDateTimeOffset();
-			Instant preTime = (i > 0) ?  timeSeriesPoints.get(i-1).getTimestamp().getDateTimeOffset() : null;
-			Instant postTime = (i < (timeSeriesPoints.size() -1)) ? timeSeriesPoints.get(i+1).getTimestamp().getDateTimeOffset() : null;
-			Boolean gapContained = false;
-			
-			if(point.getValue().getNumeric() == null) {
-				//Gap Marker Found
-				TimeSeriesSummaryDataGap gap = new TimeSeriesSummaryDataGap();
-				gap.setStartTime(preTime);
-				gap.setEndTime(postTime);
-				
-				//Determine where this gap is
-				if(preTime != null && postTime != null) {
-					gap.setGapExtent(TimeSeriesSummaryDataGapExtent.CONTAINED);
-				} else if(preTime == null) {
-					gap.setGapExtent(TimeSeriesSummaryDataGapExtent.OVER_START);
-				} else if(postTime == null) {
-					gap.setGapExtent(TimeSeriesSummaryDataGapExtent.OVER_END);
-				} else {
-					gap.setGapExtent(TimeSeriesSummaryDataGapExtent.OVER_ALL);
-				}
-				
-				gapList.add(gap);
-			}
-		}
 		
-		return gapList;
-	}
-	
-	private TimeSeriesSummaryCorrections createTimeSeriesSummaryCorrections(List<Correction> rawCorrections) {
+	private TimeSeriesSummaryCorrections createTimeSeriesSummaryCorrections(List<AqcuExtendedCorrection> correctionList, String corrUrl) {
 		TimeSeriesSummaryCorrections corrections = new TimeSeriesSummaryCorrections();
-		List<Correction> pre = new ArrayList<>();
-		List<Correction> normal = new ArrayList<>();
-		List<Correction> post = new ArrayList<>();
+		List<AqcuExtendedCorrection> pre = new ArrayList<>();
+		List<AqcuExtendedCorrection> normal = new ArrayList<>();
+		List<AqcuExtendedCorrection> post = new ArrayList<>();
 		
-		for(Correction corr : rawCorrections) {
-			if(corr.getProcessingOrder() == CorrectionProcessingOrder.PreProcessing) {
-				pre.add(corr);
-			} else if(corr.getProcessingOrder() == CorrectionProcessingOrder.Normal) {
-				normal.add(corr);
-			} else if(corr.getProcessingOrder() == CorrectionProcessingOrder.PostProcessing) {
-				post.add(corr);
+		if(correctionList != null && correctionList.size() > 0) {
+			for(AqcuExtendedCorrection corr : correctionList) {
+				if(corr.getProcessingOrder() == CorrectionProcessingOrder.PreProcessing) {
+					pre.add(corr);
+				} else if(corr.getProcessingOrder() == CorrectionProcessingOrder.Normal) {
+					normal.add(corr);
+				} else if(corr.getProcessingOrder() == CorrectionProcessingOrder.PostProcessing) {
+					post.add(corr);
+				}
 			}
 		}
 		
 		corrections.setPreProcessing(pre);
 		corrections.setNormal(normal);
 		corrections.setPostProcessing(post);
+		corrections.setCorrUrl(corrUrl);
 		
 		return corrections;
 	}
 
-	private List<TimeSeriesSummaryRatingShift> createTimeSeriesSummaryRatingShifts(List<RatingCurve> ratingCurveList) {
+	private List<TimeSeriesSummaryRatingShift> createTimeSeriesSummaryRatingShifts(List<RatingCurve> ratingCurveList, Instant startDate, Instant endDate) {
 		List<TimeSeriesSummaryRatingShift> ratingShifts = new ArrayList<>();
 		
 		for(RatingCurve curve : ratingCurveList) {
 			for(RatingShift shift : curve.getShifts()) {
-				TimeSeriesSummaryRatingShift newShift = new TimeSeriesSummaryRatingShift(shift, curve.getId());
-				ratingShifts.add(newShift);
+				if(shift.getPeriodOfApplicability().getStartTime().compareTo(endDate) <= 0 && shift.getPeriodOfApplicability().getEndTime().compareTo(startDate) >= 0) {
+					TimeSeriesSummaryRatingShift newShift = new TimeSeriesSummaryRatingShift(shift, curve.getId());
+					ratingShifts.add(newShift);
+				}
 			}
 		}
 		
 		return ratingShifts;
-	}
-	
-	private String createReportURL(String reportType, Map<String, String> parameters) {
-		String reportUrl = BASE_URL + reportType + "?";
-		
-		for(Map.Entry<String, String> entry : parameters.entrySet()) {
-			if(entry.getKey() != null && entry.getKey().length() > 0) {
-				reportUrl += entry.getKey() + "=" + entry.getValue() + "&";
-			}
-		}
-		
-		return reportUrl.substring(0, reportUrl.length()-1);
 	}
 }
 	

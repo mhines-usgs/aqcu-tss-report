@@ -4,12 +4,12 @@ import java.time.Instant;
 import java.time.Duration;
 import java.math.BigDecimal;
 
-public class TimeSeriesSummaryDataGap {
+public class AqcuDataGap {
 	private Instant startTime = null;
 	private Instant endTime = null;
 	private BigDecimal durationInHours = null;
-	private TimeSeriesSummaryDataGapExtent gapExtent;
-	
+	private AqcuDataGapExtent gapExtent;
+		
 	public Instant getStartTime() {
 		return startTime;
 	}
@@ -18,7 +18,7 @@ public class TimeSeriesSummaryDataGap {
 		return endTime;
 	}
 	
-	public TimeSeriesSummaryDataGapExtent getGapExtent() {
+	public AqcuDataGapExtent getGapExtent() {
 		return gapExtent;
 	}
 	
@@ -36,7 +36,7 @@ public class TimeSeriesSummaryDataGap {
 		calculateDurationInHours();
 	}
 	
-	public void setGapExtent(TimeSeriesSummaryDataGapExtent val) {
+	public void setGapExtent(AqcuDataGapExtent val) {
 		gapExtent = val;
 	}
 	

@@ -4,10 +4,9 @@ import java.util.List;
 import java.util.ArrayList;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Processor;
-import gov.usgs.aqcu.model.TimeSeriesSummaryDataGap;
 
 public class TimeSeriesSummaryCorrectedData extends TimeSeriesDataServiceResponse {
-	private List<TimeSeriesSummaryDataGap> gaps;
+	private List<AqcuDataGap> gaps;
 	private List<Processor> processors;
 	
 	public TimeSeriesSummaryCorrectedData() {
@@ -15,11 +14,11 @@ public class TimeSeriesSummaryCorrectedData extends TimeSeriesDataServiceRespons
 		processors = new ArrayList<>();
 	}
 	
-	public List<TimeSeriesSummaryDataGap> getGaps() {
+	public List<AqcuDataGap> getGaps() {
 		return gaps;
 	}
 	
-	public void setGaps(List<TimeSeriesSummaryDataGap> val) {
+	public void setGaps(List<AqcuDataGap> val) {
 		gaps = val;
 	}
 	

@@ -31,4 +31,8 @@ public class JndiConfig {
 		return ctx.lookup("java:comp/env/aquarius.service.password").toString();
 	}
 
+	@Bean
+	public String aqcuWebserviceUrl() throws Exception {
+		return ctx.lookup("java:comp/env/aqcu.reports.webservice").toString();
+	}
 }
