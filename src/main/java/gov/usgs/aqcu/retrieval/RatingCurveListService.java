@@ -1,24 +1,23 @@
 package gov.usgs.aqcu.retrieval;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.time.Instant;
-import java.util.Map;
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.aquaticinformatics.aquarius.sdk.timeseries.AquariusClient;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.PeriodOfApplicability;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShift;
 
-import net.servicestack.client.IReturn;
-import net.servicestack.client.WebServiceException;
+import gov.usgs.aqcu.util.AqcuTimeUtils;
 
 @Component
 public class RatingCurveListService extends AquariusRetrievalService {
@@ -33,100 +32,122 @@ public class RatingCurveListService extends AquariusRetrievalService {
 		RatingCurveListServiceResponse ratingCurveResponse = executePublishApiRequest(request);
 		return ratingCurveResponse;
 	}
-	
-	/* WIP
+
 	public List<RatingCurve> getAqcuFilteredRatingCurves(RatingCurveListServiceResponse response, Instant startDate, Instant endDate) {
 		List<RatingCurve> responseCurves = response.getRatingCurves();
 		List<RatingCurve> filteredCurves = new ArrayList<>();
-		List<Pair<int, PeriodOfApplicability>> fullPeriodList = new ArrayList<>();
+		List<ImmutablePair<Integer,PeriodOfApplicability>> fullPeriodList = new ArrayList<>();
+		List<ImmutablePair<Integer,PeriodOfApplicability>> filteredPeriodList = new ArrayList<>();
 		
 		//Get Full List of Curve Periods
-		for(var i = 0; i < responseCurves.size(); i++) {
+		for(int i = 0; i < responseCurves.size(); i++) {
 			for(PeriodOfApplicability period : responseCurves.get(i).getPeriodsOfApplicability()) {
-				fullPeriodList.add(new Pair<>(i, period);
+				fullPeriodList.add(new ImmutablePair<Integer,PeriodOfApplicability>(i, period));
 			}
 		}
 		
-		//Sort Period List by Start Date
-		Collections.sort(fullPeriodList, new Comparator<Pair<int, PeriodOfApplicability>>() {
-			@Override
-			public int compare(final Pair<int, PeriodOfApplicability> o1, final Pair<int, PeriodOfApplicability> o2) {
-				return o1.getValue().getStartTime().compareTo(o2.getValue().getStartTime());
-			}
-		});
-		
-		//Apply Fake End Times to Period List
-		for(var i = 0; i < fullPeriodList.size(); i++) {
-			Pair<int,PeriodOfApplicability> pair = fullPeriodList.get(i);
-			
-			if(isOpenEndedTime(pair.getValue().getEndTime())) {
-				
-			}
+		//Filter Full Period List
+		filteredPeriodList = getRatingPeriodsWithinReportRange(fullPeriodList, startDate, endDate);
+
+		//Build Filtered Curve List from Filtered Period List
+		for(ImmutablePair<Integer,PeriodOfApplicability> pair : filteredPeriodList) {
+			filteredCurves.add(responseCurves.get(pair.getKey()));
 		}
 
-		//Track the first rating that starts after the report period
-		RatingCurve firstCurveAfterPeriod = null;
-		Instant firstCurveAfterPeriodMin = null;
-		Instant firstCurveAfterPeriodMax = null;
-		
-		for(RatingCurve curve : responseCurves) {
-			Pair<Instant,Instant> curveMinMax = getCurveMinMaxTimes(curve);
-			Instant curveMin = curveMinMax.getKey();
-			Instant curveMax = curveMinMax.getValue();
-			
-			if(curveMin.compareTo(endDate) <=0 && curveMax.compareTo(startDate) >= 0) {
-				filteredCurves.add(curve);
-			} else if(curveMin.compareTo(endDate) >= 0) {
-				if(firstCurveAfterPeriod == null || curveMin.compareTo(firstCurveAfterPeriodMin) <= 0) {
-					firstCurveAfterPeriod = curve;
-					firstCurveAfterPeriodMin = curveMin;
-					firstCurveAfterPeriodMax = curveMax;
-				}
-			}
-		}
-		
-		if(firstCurveAfterPeriod != null && isOpenTimePeriod(firstCurveAfterPeriodMax)) {
-			filteredCurves.add(firstCurveAfterPeriod);
-		}
-		
 		return filteredCurves;
-	}
-	
-	public List<RatingShift> getAqcuFilteredRatingShifts(RatingCurveListServiceResponse response, Instant startDate, Instant endDate) {
-		//Assign Fake End Times to shifts
-		
 	}
 	
 	public List<RatingCurve> getAqcuFilteredRatingCurves(String ratingModelIdentifier, Double utcOffset, Instant requestStartDate, Instant requestEndDate, Instant filterStartDate, Instant filterEndDate) throws Exception {
 		return getAqcuFilteredRatingCurves(getRawResponse(ratingModelIdentifier, utcOffset, requestStartDate, requestEndDate), filterStartDate, filterEndDate);
 	}
 	
-	private Pair<Instant,Instant> getCurveMinMaxTimes(RatingCurve curve) {
-		Instant curveStart = curve.getPeriodsOfApplicability().get(0).getStartTime();
-		Instant curveEnd = curve.getPeriodsOfApplicability().get(0).getEndTime();
-			
-		for(PeriodOfApplicability period : curve.getPeriodsOfApplicability()) {
-			if(period.getStartTime().compareTo(curveStart) < 0) {
-				curveStart = period.getStartTime();
-			}
-			
-			if(period.getEndTime().compareTo(curveEnd) > 0) {
-				curveEnd = period.getEndTime();
+	public List<RatingShift> getAqcuFilteredRatingShifts(List<RatingCurve> curves, Instant startDate, Instant endDate) {
+		List<RatingShift> curveShifts = new ArrayList<>();
+		List<RatingShift> filteredShifts = new ArrayList<>();
+		List<ImmutablePair<Integer,PeriodOfApplicability>> fullPeriodList = new ArrayList<>();
+		List<ImmutablePair<Integer,PeriodOfApplicability>> filteredPeriodList = new ArrayList<>();
+
+		//Build full Shift List and Shift Period List
+		for(RatingCurve curve : curves) {
+			for(RatingShift shift : curve.getShifts()) {
+				int shiftIndex = curveShifts.size();
+				curveShifts.add(shift);
+				fullPeriodList.add(new ImmutablePair<Integer,PeriodOfApplicability>(shiftIndex, shift.getPeriodOfApplicability()));
 			}
 		}
-		
-		return new Pair<>(curveStart,curveEnd);
-	}
-	
-	private boolean isOpenEndedTime(Instant time) {
-		Instant openStart = Instant.parse("0001-01-01T00:00:00Z");
-		Instant openEnd = Instant.parse("9999-12-31T00:00:00Z");
-		
-		if(time.compareTo(openStart) <= 0 || time.compareTo(openEnd) >= 0) {
-			return true;
+
+		//Filter Full Period List
+		filteredPeriodList = getRatingPeriodsWithinReportRange(fullPeriodList, startDate, endDate);
+
+		//Build Filtered Shift List from Filtered Period List
+		for(ImmutablePair<Integer,PeriodOfApplicability> pair : filteredPeriodList) {
+			filteredShifts.add(curveShifts.get(pair.getKey()));
 		}
-		
-		return false;
+
+		return filteredShifts;
 	}
-	*/
+
+	public List<ImmutablePair<Integer,PeriodOfApplicability>> getRatingPeriodsWithinReportRange(List<ImmutablePair<Integer,PeriodOfApplicability>> pairList, Instant startDate, Instant endDate) {
+		List<ImmutablePair<Integer,PeriodOfApplicability>> includePairs = new ArrayList<>();
+
+		PeriodOfApplicability reportPeriod = new PeriodOfApplicability();
+		reportPeriod.setStartTime(startDate);
+		reportPeriod.setEndTime(endDate);
+
+		//Sort Pair List by Period Start Time
+		Collections.sort(pairList, new Comparator<ImmutablePair<Integer, PeriodOfApplicability>>() {
+			@Override
+			public int compare(final ImmutablePair<Integer, PeriodOfApplicability> o1, final ImmutablePair<Integer, PeriodOfApplicability> o2) {
+				return o1.getValue().getStartTime().compareTo(o2.getValue().getStartTime());
+			}
+		});
+
+		//Filter Pair List
+		boolean foundFirstRating = false;
+		for(int i = 0; i < pairList.size(); i++) {
+			ImmutablePair<Integer,PeriodOfApplicability> pair = pairList.get(i);
+			ImmutablePair<Integer,PeriodOfApplicability> prevPair = (i > 0) ? pairList.get(i-1) : null;
+			PeriodOfApplicability nextPeriod = (i < pairList.size()-1) ? pairList.get(i+1).getValue() : null;
+
+			PeriodOfApplicability effectiveRatingPeriod = createEffectiveRatingPeriod(pair.getValue(), nextPeriod);
+
+			if(AqcuTimeUtils.doPeriodsOverlap(effectiveRatingPeriod, reportPeriod)) {
+				//Include if Rating Period overlaps Report Period
+				includePairs.add(pair);
+
+				//If this is the first included Rating Period mark the first rating as having been found
+				if(!foundFirstRating) {
+					foundFirstRating = true;
+					
+					// If the previous Period (first Period prior to the Report Start date) is open-ended then include it
+					if(prevPair != null && AqcuTimeUtils.isOpenEndedTime(prevPair.getValue().getEndTime())) {
+						includePairs.add(prevPair);
+					}
+				}
+			} else if(pair.getValue().getStartTime().compareTo(endDate) > 0) {
+				//If this Rating Period is after the Report End Date then this is the last period to process
+				//If the previous Period was inlcuded and open-ended then also include this Period
+				if(prevPair != null && includePairs.contains(prevPair) && AqcuTimeUtils.isOpenEndedTime(prevPair.getValue().getEndTime())) {
+					includePairs.add(pair);
+				}
+				break;
+			}
+		}
+
+		return includePairs;
+	}
+
+	private PeriodOfApplicability createEffectiveRatingPeriod(PeriodOfApplicability ratingPeriod, PeriodOfApplicability nextRatingPeriod) {
+		PeriodOfApplicability effectivePeriod = new PeriodOfApplicability();
+		effectivePeriod.setStartTime(ratingPeriod.getStartTime());
+
+		//Periods with open-ended End Times are "ended" by the Start Time of the next Period, if it exists
+		if(AqcuTimeUtils.isOpenEndedTime(ratingPeriod.getEndTime()) && nextRatingPeriod != null) {
+			effectivePeriod.setEndTime(nextRatingPeriod.getStartTime());
+		} else {
+			effectivePeriod.setEndTime(ratingPeriod.getEndTime());
+		}
+
+		return effectivePeriod;
+	}
 }

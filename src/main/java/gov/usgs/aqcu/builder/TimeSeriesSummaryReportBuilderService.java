@@ -5,12 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Set;
-import java.util.LinkedHashSet;
 import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.lang.Math;
-import java.time.Duration;
 
 import com.google.gson.Gson;
 import org.slf4j.Logger;
@@ -21,25 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Processor;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Correction;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Grade;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GradeMetadata;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Qualifier;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.QualifierMetadata;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionProcessingOrder;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShift;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShiftPoint;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescription;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.LocationDescription;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.LocationDescriptionListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionListServiceResponse;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GradeListServiceResponse;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.QualifierListServiceResponse;
-
 import gov.usgs.aqcu.model.*;
 import gov.usgs.aqcu.retrieval.*;
 
@@ -91,8 +75,10 @@ public class TimeSeriesSummaryReportBuilderService extends AqcuReportBuilderServ
 		
 		//Filtered Rating Curves
 		List<RatingCurve> ratingCurveList = null;
+		List<RatingShift> ratingShiftList = null;
 		if(primaryRatingModelUniqueId != null) {
-			ratingCurveList = ratingCurveListService.getRawResponse(primaryRatingModelUniqueId, null, startDate, endDate).getRatingCurves();
+			ratingCurveList = ratingCurveListService.getAqcuFilteredRatingCurves(primaryRatingModelUniqueId, null, null, null, startDate, endDate);
+			ratingShiftList = ratingCurveListService.getAqcuFilteredRatingShifts(ratingCurveList, startDate, endDate);
 		}
 		
 		//Filtered Corrections
@@ -133,7 +119,7 @@ public class TimeSeriesSummaryReportBuilderService extends AqcuReportBuilderServ
 		Map<String,String> downchainUrls = reportUrlBuilderService.buildAqcuReportUrlMapByUnqiueIdList("timeseriessummary", startDate, endDate, downchainUniqueIdList, reportMetadata.getStationId(), reportMetadata.getAdvancedOptions());
 		
 		//Build Report Object
-		TimeSeriesSummaryReport report = createReport(dataResponse, primaryDescription, upchainDescriptions, upchainUrls, downchainDescriptions, downchainUrls, upchainProcessorList, correctionList, corrUrl, ratingCurveList, gapList, startDate, endDate, reportMetadata);
+		TimeSeriesSummaryReport report = createReport(dataResponse, primaryDescription, upchainDescriptions, upchainUrls, downchainDescriptions, downchainUrls, upchainProcessorList, correctionList, corrUrl, ratingCurveList, ratingShiftList, gapList, startDate, endDate, reportMetadata);
 		
 		return report;
 	}
@@ -149,6 +135,7 @@ public class TimeSeriesSummaryReportBuilderService extends AqcuReportBuilderServ
 		List<AqcuExtendedCorrection> correctionList,
 		String corrUrl,
 		List<RatingCurve> ratingCurveList,
+		List<RatingShift> ratingShiftList,
 		List<AqcuDataGap> gapList,
 		Instant startDate,
 		Instant endDate,
@@ -180,7 +167,7 @@ public class TimeSeriesSummaryReportBuilderService extends AqcuReportBuilderServ
 			//Add Rating Curve Data 
 			if(ratingCurveList != null && ratingCurveList.size() > 0) {
 				report.setRatingCurves(ratingCurveList);
-				report.setRatingShifts(createTimeSeriesSummaryRatingShifts(ratingCurveList, startDate, endDate));
+				report.setRatingShifts(createTimeSeriesSummaryRatingShifts(ratingCurveList, ratingShiftList, startDate, endDate));
 			}
 			
 			return report;
@@ -252,18 +239,19 @@ public class TimeSeriesSummaryReportBuilderService extends AqcuReportBuilderServ
 		return corrections;
 	}
 
-	private List<TimeSeriesSummaryRatingShift> createTimeSeriesSummaryRatingShifts(List<RatingCurve> ratingCurveList, Instant startDate, Instant endDate) {
+	private List<TimeSeriesSummaryRatingShift> createTimeSeriesSummaryRatingShifts(List<RatingCurve> curveList, List<RatingShift> shiftList, Instant startDate, Instant endDate) {
 		List<TimeSeriesSummaryRatingShift> ratingShifts = new ArrayList<>();
 		
-		for(RatingCurve curve : ratingCurveList) {
-			for(RatingShift shift : curve.getShifts()) {
-				if(shift.getPeriodOfApplicability().getStartTime().compareTo(endDate) <= 0 && shift.getPeriodOfApplicability().getEndTime().compareTo(startDate) >= 0) {
+		for(RatingShift shift : shiftList) {
+			for(RatingCurve curve : curveList) {
+				if(curve.getShifts().contains(shift)) {
 					TimeSeriesSummaryRatingShift newShift = new TimeSeriesSummaryRatingShift(shift, curve.getId());
 					ratingShifts.add(newShift);
+					break;
 				}
 			}
 		}
-		
+
 		return ratingShifts;
 	}
 }
