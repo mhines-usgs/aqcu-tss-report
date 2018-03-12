@@ -22,10 +22,8 @@ public class AqcuDataGapListBuilderService {
 
 		for(int i = 0; i < timeSeriesPoints.size(); i++) {
 			TimeSeriesPoint point = timeSeriesPoints.get(i);
-			Instant time = timeSeriesPoints.get(i).getTimestamp().getDateTimeOffset();
 			Instant preTime = (i > 0) ?  timeSeriesPoints.get(i-1).getTimestamp().getDateTimeOffset() : null;
 			Instant postTime = (i < (timeSeriesPoints.size() -1)) ? timeSeriesPoints.get(i+1).getTimestamp().getDateTimeOffset() : null;
-			Boolean gapContained = false;
 			
 			if(point.getValue().getNumeric() == null) {
 				//Gap Marker Found
