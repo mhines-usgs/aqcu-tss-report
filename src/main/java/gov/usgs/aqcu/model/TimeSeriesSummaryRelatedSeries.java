@@ -1,7 +1,5 @@
 package gov.usgs.aqcu.model;
 
-import java.time.Instant;
-
 public class TimeSeriesSummaryRelatedSeries {
 	private String identifier;
 	private String url;

@@ -1,8 +1,5 @@
 package gov.usgs.aqcu.model;
 
-import java.util.List;
-import java.util.ArrayList;
-
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Correction;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionType;
 

@@ -1,18 +1,11 @@
 package gov.usgs.aqcu.retrieval;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import java.time.Instant;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.AquariusClient;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.LocationDescriptionListServiceRequest;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.LocationDescriptionListServiceResponse;
 
 import net.servicestack.client.IReturn;
 import net.servicestack.client.WebServiceException;

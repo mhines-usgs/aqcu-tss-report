@@ -8,15 +8,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.aquaticinformatics.aquarius.sdk.timeseries.AquariusClient;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionListServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Correction;
 
 import gov.usgs.aqcu.model.AqcuExtendedCorrection;
-
-import net.servicestack.client.IReturn;
-import net.servicestack.client.WebServiceException;
 
 @Component
 public class CorrectionListService extends AquariusRetrievalService {
