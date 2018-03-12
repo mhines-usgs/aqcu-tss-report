@@ -11,6 +11,7 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Grad
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GradeListServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Grade;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GradeMetadata;
+import gov.usgs.aqcu.exception.AquariusException;
 
 @Component
 public class GradeLookupService extends AquariusRetrievalService {
@@ -18,13 +19,13 @@ public class GradeLookupService extends AquariusRetrievalService {
 
 	//TODO: Use Redis or some other form of caching for this
 
-	public List<GradeMetadata> get() throws Exception {
+	public List<GradeMetadata> get() throws AquariusException {
 		GradeListServiceRequest request = new GradeListServiceRequest();
 		GradeListServiceResponse gradeListResponse = executePublishApiRequest(request);
 		return gradeListResponse.getGrades();
 	}
 
-	public List<GradeMetadata> getByIdentifierList(List<String> includeIdentifiers) throws Exception {
+	public List<GradeMetadata> getByIdentifierList(List<String> includeIdentifiers) throws AquariusException {
 		List<GradeMetadata> filtered = new ArrayList<>();
 		List<GradeMetadata> metadataList = get();
 		for(GradeMetadata metadata : metadataList) {
@@ -36,7 +37,7 @@ public class GradeLookupService extends AquariusRetrievalService {
 		return filtered;
 	}
 
-	public List<GradeMetadata> getByGradeList(List<Grade> includeGrades) throws Exception {
+	public List<GradeMetadata> getByGradeList(List<Grade> includeGrades) throws AquariusException {
 		List<String> gradeIdentifiers = new ArrayList<>();
 
 		for(Grade grade : includeGrades) {

@@ -9,7 +9,6 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Grad
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.QualifierMetadata;
 
 public class AqcuReportMetadata {	
-	
 	private String requestingUser;
 	private String timezone;
 	private Instant startDate;
@@ -25,6 +24,56 @@ public class AqcuReportMetadata {
 	private Map<String, QualifierMetadata> qualifierMetadata;
 	
 	public AqcuReportMetadata() {
+	}
+
+	public AqcuReportMetadata(
+		String reportType,
+		String reportTitle,
+		String primaryTimeSeriesIdentifier,
+		Instant startDate,
+		Instant endDate,
+		Map<String,String> urlParams,
+		String requestingUser) {
+		AqcuReportMetadata metadata = new AqcuReportMetadata();
+
+		metadata.setRequestingUser(requestingUser);
+		metadata.setStartDate(startDate);
+		metadata.setEndDate(endDate);
+		metadata.setTitle(reportTitle);
+		metadata.setReportType(reportType);
+		metadata.setAdvancedOptions(urlParams);
+		metadata.setPrimaryTimeSeriesIdentifier(primaryTimeSeriesIdentifier);
+	}
+
+	public AqcuReportMetadata(
+		String reportType,
+		String reportTitle,
+		String primaryTimeSeriesIdentifier,
+		String primaryParameter,
+		Double utcOffset,
+		String stationName,
+		String stationId,
+		List<GradeMetadata> gradeMetadataList,
+		List<QualifierMetadata> qualifierMetadataList,
+		Instant startDate,
+		Instant endDate,
+		Map<String,String> urlParams,
+		String requestingUser) {
+		AqcuReportMetadata metadata = new AqcuReportMetadata();
+
+		metadata.setRequestingUser(requestingUser);
+		metadata.setTimezone("Etc/GMT+" + (int)(-1 * utcOffset));
+		metadata.setStartDate(startDate);
+		metadata.setEndDate(endDate);
+		metadata.setTitle(reportTitle);
+		metadata.setReportType(reportType);
+		metadata.setAdvancedOptions(urlParams);
+		metadata.setPrimaryParameter(primaryParameter);
+		metadata.setStationName(stationName);
+		metadata.setStationId(stationId);
+		metadata.setQualifierMetadata(qualifierMetadataList);
+		metadata.setGradeMetadata(gradeMetadataList);
+		metadata.setPrimaryTimeSeriesIdentifier(primaryTimeSeriesIdentifier);
 	}
 	
 	public AqcuReportMetadata(AqcuReportMetadata other) {
@@ -109,6 +158,10 @@ public class AqcuReportMetadata {
 	
 	public void setTimezone(String val) {
 		timezone = val;
+	}
+	
+	public void setTimezone(Double utcOffset) {
+		timezone = "Etc/GMT+" + (int)(-1 * utcOffset);
 	}
 	
 	public void setStartDate(Instant val) {

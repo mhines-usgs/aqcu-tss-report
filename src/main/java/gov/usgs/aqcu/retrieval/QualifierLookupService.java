@@ -11,6 +11,7 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Qual
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.QualifierListServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Qualifier;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.QualifierMetadata;
+import gov.usgs.aqcu.exception.AquariusException;
 
 @Component
 public class QualifierLookupService extends AquariusRetrievalService {
@@ -18,13 +19,13 @@ public class QualifierLookupService extends AquariusRetrievalService {
 
 	//TODO: Use Redis or some other form of caching for this
 
-	public List<QualifierMetadata> get() throws Exception {
+	public List<QualifierMetadata> get() throws AquariusException {
 		QualifierListServiceRequest request = new QualifierListServiceRequest();
 		QualifierListServiceResponse qualifierListResponse = executePublishApiRequest(request);
 		return qualifierListResponse.getQualifiers();
 	}
 
-	public List<QualifierMetadata> getByIdentifierList(List<String> includeIdentifiers) throws Exception {
+	public List<QualifierMetadata> getByIdentifierList(List<String> includeIdentifiers) throws AquariusException {
 		List<QualifierMetadata> filtered = new ArrayList<>();
 		List<QualifierMetadata> metadataList = get();
 		for(QualifierMetadata metadata : metadataList) {
@@ -36,7 +37,7 @@ public class QualifierLookupService extends AquariusRetrievalService {
 		return filtered;
 	}
 
-	public List<QualifierMetadata> getByQualifierList(List<Qualifier> includeQualifiers) throws Exception {
+	public List<QualifierMetadata> getByQualifierList(List<Qualifier> includeQualifiers) throws AquariusException {
 		List<String> qualifierIdentifiers = new ArrayList<>();
 
 		for(Qualifier qual : includeQualifiers) {

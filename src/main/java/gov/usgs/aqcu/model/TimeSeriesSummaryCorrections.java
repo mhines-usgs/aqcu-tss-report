@@ -1,6 +1,9 @@
 package gov.usgs.aqcu.model;
 
 import java.util.List;
+
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionProcessingOrder;
+
 import java.util.ArrayList;
 
 public class TimeSeriesSummaryCorrections {	
@@ -8,6 +11,26 @@ public class TimeSeriesSummaryCorrections {
 	private List<AqcuExtendedCorrection> normal;
 	private List<AqcuExtendedCorrection> postProcessing;
 	String corrUrl;
+
+	public TimeSeriesSummaryCorrections(List<AqcuExtendedCorrection> correctionList, String corrUrl) {
+		preProcessing = new ArrayList<>();
+		normal = new ArrayList<>();
+		postProcessing = new ArrayList<>();
+
+		if(correctionList != null && correctionList.size() > 0) {
+			for(AqcuExtendedCorrection corr : correctionList) {
+				if(corr.getProcessingOrder() == CorrectionProcessingOrder.PreProcessing) {
+					preProcessing.add(corr);
+				} else if(corr.getProcessingOrder() == CorrectionProcessingOrder.Normal) {
+					normal.add(corr);
+				} else if(corr.getProcessingOrder() == CorrectionProcessingOrder.PostProcessing) {
+					postProcessing.add(corr);
+				}
+			}
+		}
+
+		setCorrUrl(corrUrl);
+	}
 	
 	public TimeSeriesSummaryCorrections() {
 		preProcessing = new ArrayList<>();

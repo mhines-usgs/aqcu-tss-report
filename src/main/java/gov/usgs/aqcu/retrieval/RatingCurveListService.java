@@ -16,6 +16,7 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Rati
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.PeriodOfApplicability;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShift;
+import gov.usgs.aqcu.exception.AquariusException;
 
 import gov.usgs.aqcu.util.AqcuTimeUtils;
 
@@ -23,7 +24,7 @@ import gov.usgs.aqcu.util.AqcuTimeUtils;
 public class RatingCurveListService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(RatingCurveListService.class);
 
-	public RatingCurveListServiceResponse getRawResponse(String ratingModelIdentifier, Double utcOffset, Instant startDate, Instant endDate) throws Exception {
+	public RatingCurveListServiceResponse getRawResponse(String ratingModelIdentifier, Double utcOffset, Instant startDate, Instant endDate) throws AquariusException {
 		RatingCurveListServiceRequest request = new RatingCurveListServiceRequest()
 				.setRatingModelIdentifier(ratingModelIdentifier)
 				.setUtcOffset(utcOffset)
@@ -57,7 +58,7 @@ public class RatingCurveListService extends AquariusRetrievalService {
 		return filteredCurves;
 	}
 	
-	public List<RatingCurve> getAqcuFilteredRatingCurves(String ratingModelIdentifier, Double utcOffset, Instant requestStartDate, Instant requestEndDate, Instant filterStartDate, Instant filterEndDate) throws Exception {
+	public List<RatingCurve> getAqcuFilteredRatingCurves(String ratingModelIdentifier, Double utcOffset, Instant requestStartDate, Instant requestEndDate, Instant filterStartDate, Instant filterEndDate) throws AquariusException {
 		return getAqcuFilteredRatingCurves(getRawResponse(ratingModelIdentifier, utcOffset, requestStartDate, requestEndDate), filterStartDate, filterEndDate);
 	}
 	

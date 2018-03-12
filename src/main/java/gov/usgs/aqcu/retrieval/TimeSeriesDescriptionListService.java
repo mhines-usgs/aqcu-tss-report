@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
+import gov.usgs.aqcu.exception.AquariusException;
+import gov.usgs.aqcu.exception.AquariusProcessingException;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescription;
 
 
@@ -20,27 +22,26 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Time
 public class TimeSeriesDescriptionListService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesDescriptionListService.class);
 
-	public TimeSeriesDescriptionListByUniqueIdServiceResponse getRawResponse(List<String> timeSeriesUniqueIds) throws Exception {
+	public TimeSeriesDescriptionListByUniqueIdServiceResponse getRawResponse(List<String> timeSeriesUniqueIds) throws AquariusException {
 		TimeSeriesDescriptionListByUniqueIdServiceRequest request = new TimeSeriesDescriptionListByUniqueIdServiceRequest()
 				.setTimeSeriesUniqueIds(new ArrayList<>(timeSeriesUniqueIds));
 		TimeSeriesDescriptionListByUniqueIdServiceResponse tssDesc = executePublishApiRequest(request);
 		return tssDesc;
 	}
 
-	public List<TimeSeriesDescription> getTimeSeriesDescriptionList(Set<String> timeSeriesUniqueIds) throws Exception {
+	public List<TimeSeriesDescription> getTimeSeriesDescriptionList(Set<String> timeSeriesUniqueIds) throws AquariusException {
 		List<TimeSeriesDescription> descList = getRawResponse(new ArrayList<String>(timeSeriesUniqueIds)).getTimeSeriesDescriptions();
 
 		if(descList.size() != timeSeriesUniqueIds.size()) {
 			String errorString = "Failed to fetch descriptions for all requested Time Series Identifiers: \nRequested: " + timeSeriesUniqueIds.size() + 
 				"\nReceived: "  + descList.size();
 			LOG.error(errorString);
-			//TODO: Change to more specific exception
-			throw new Exception(errorString);
+			throw new AquariusProcessingException(errorString);
 		}
 		return descList;
 	}
 
-	public Map<String,List<TimeSeriesDescription>> getBatchTimeSeriesDescriptionLists(Map<String,List<String>> timeSeriesUniqueIdMap) throws Exception {
+	public Map<String,List<TimeSeriesDescription>> getBatchTimeSeriesDescriptionLists(Map<String,List<String>> timeSeriesUniqueIdMap) throws AquariusException {
 		Map<String,List<TimeSeriesDescription>> outputMap = new HashMap<>();
 		Set<String> timeSeriesUniqueIds = new HashSet<>();
 
@@ -72,8 +73,7 @@ public class TimeSeriesDescriptionListService extends AquariusRetrievalService {
 				String errorString = "Failed to match returned descriptions to requested time series groups in batch request. Group: " + entry.getKey() + "\nRequested: " +  entry.getValue().size() + 
 				"\nReceived: "  +outputMap.get(entry.getKey()).size();
 			LOG.error(errorString);
-			//TODO: Change to more specific exception
-			throw new Exception(errorString);
+			throw new AquariusProcessingException(errorString);
 			}
 		}
 

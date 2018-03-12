@@ -12,12 +12,13 @@ import com.google.gson.Gson;
 
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 @Component
 public class AqcuReportUrlBuilderService {
 	private static final Logger LOG = LoggerFactory.getLogger(AqcuReportUrlBuilderService.class);
 
-	@Autowired
+	@Value("${aqcu.reports.webservice}")
 	private String aqcuWebserviceUrl;
 	private final String SERVICE_ENDPOINT = "/service";
 	private final String REPORTS_ENDPOINT = "/reports";

@@ -12,13 +12,14 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Corr
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Correction;
 
+import gov.usgs.aqcu.exception.AquariusException;
 import gov.usgs.aqcu.model.AqcuExtendedCorrection;
 
 @Component
 public class CorrectionListService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(RatingCurveListService.class);
 
-	public CorrectionListServiceResponse getRawResponse(String timeseriesUniqueId, Instant startDate, Instant endDate) throws Exception {
+	public CorrectionListServiceResponse getRawResponse(String timeseriesUniqueId, Instant startDate, Instant endDate) throws AquariusException {
 		CorrectionListServiceRequest request = new CorrectionListServiceRequest()
 				.setTimeSeriesUniqueId(timeseriesUniqueId)
 				.setQueryFrom(startDate)
@@ -27,15 +28,15 @@ public class CorrectionListService extends AquariusRetrievalService {
 		return correctionListResponse;
 	}
 
-	public List<Correction> getCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate) throws Exception  {
+	public List<Correction> getCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate) throws AquariusException {
 		return getRawResponse(timeseriesUniqueId, startDate, endDate).getCorrections();
 	}
 
-	public List<AqcuExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate, List<String> excludedCorrections) throws Exception  {
+	public List<AqcuExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate, List<String> excludedCorrections) throws AquariusException {
 		return createAqcuExtendedCorrectionsFromCorrections(getCorrectionList(timeseriesUniqueId, startDate, endDate), excludedCorrections);
 	}
 
-	public List<AqcuExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate) throws Exception  {
+	public List<AqcuExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate) throws AquariusException {
 		return getAqcuExtendedCorrectionList(timeseriesUniqueId, startDate, endDate, null);
 	}
 

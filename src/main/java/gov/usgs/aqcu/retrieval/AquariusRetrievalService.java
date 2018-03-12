@@ -3,6 +3,7 @@ package gov.usgs.aqcu.retrieval;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.AquariusClient;
@@ -10,23 +11,24 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.AquariusClient;
 import net.servicestack.client.IReturn;
 import net.servicestack.client.WebServiceException;
 
-import gov.usgs.aqcu.exception.AquariusException;
+import gov.usgs.aqcu.exception.AquariusRetrievalException;
+import gov.usgs.aqcu.exception.AquariusProcessingException;
 
 @Component
 public class AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(LocationDescriptionListService.class);
 
-	@Autowired
+	@Value("${aquarius.service.endpoint}")
 	private String aquariusUrl;
 
-	@Autowired
+	@Value("${aquarius.service.user}")
 	private String aquariusUser;
 
-	@Autowired
+	@Value("${aquarius.service.password}")
 	private String aquariusPassword;
 
-	protected <TResponse> TResponse executePublishApiRequest(IReturn<TResponse> request)  throws Exception {
-		try (AquariusClient client = AquariusClient.createConnectedClient(aquariusUrl, aquariusUser, aquariusPassword)) {
+	protected <TResponse> TResponse executePublishApiRequest(IReturn<TResponse> request)  throws AquariusRetrievalException, AquariusProcessingException {
+		try (AquariusClient client = AquariusClient.createConnectedClient(aquariusUrl.replaceAll("/AQUARIUS/", ""), aquariusUser, aquariusPassword)) {
 			return client.Publish.get(request);
 		} catch (WebServiceException e) {
 			String errorMessage = "A Web Service Exception occurred while executing a Publish API Request against Aquarius:\n{" +
@@ -37,10 +39,10 @@ public class AquariusRetrievalService {
 			"\nCause: " + e.getErrorMessage() +
 			"\nDetails: " + e.getServerStackTrace() + "\n}\n";
 			LOG.error(errorMessage);
-			throw new AquariusException(errorMessage);
+			throw new AquariusRetrievalException(errorMessage);
 		} catch (Exception e) {
 			LOG.error("An unexpected error occurred while attempting to fetch data from Aquarius: ", e);
-			throw e;
+			throw new AquariusProcessingException(e.getMessage());
 		}
 	}
 }
