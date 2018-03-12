@@ -1,3 +1,5 @@
+package gov.usgs.aqcu.util;
+
 import java.time.Instant;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.PeriodOfApplicability;
 
