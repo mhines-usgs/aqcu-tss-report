@@ -33,7 +33,7 @@ public class AqcuReportMetadataBuilderService {
 		Map<String,String> urlParams,
 		String requestingUser) {
 		AqcuReportMetadata metadata = new AqcuReportMetadata();
-		
+
 		metadata.setRequestingUser(requestingUser);
 		metadata.setTimezone("Etc/GMT+" + (int)(-1 * utcOffset));
 		metadata.setStartDate(startDate);
@@ -47,7 +47,7 @@ public class AqcuReportMetadataBuilderService {
 		metadata.setQualifierMetadata(qualifierMetadataList);
 		metadata.setGradeMetadata(gradeMetadataList);
 		metadata.setPrimaryTimeSeriesIdentifier(primaryTimeSeriesIdentifier);
-		
+
 		return metadata;
 	}
 }

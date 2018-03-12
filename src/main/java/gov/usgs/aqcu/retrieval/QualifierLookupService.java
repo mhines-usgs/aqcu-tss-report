@@ -15,7 +15,7 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Qual
 @Component
 public class QualifierLookupService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(QualifierLookupService.class);
-	
+
 	//TODO: Use Redis or some other form of caching for this
 
 	public List<QualifierMetadata> get() throws Exception {
@@ -23,7 +23,7 @@ public class QualifierLookupService extends AquariusRetrievalService {
 		QualifierListServiceResponse qualifierListResponse = executePublishApiRequest(request);
 		return qualifierListResponse.getQualifiers();
 	}
-	
+
 	public List<QualifierMetadata> getByIdentifierList(List<String> includeIdentifiers) throws Exception {
 		List<QualifierMetadata> filtered = new ArrayList<>();
 		List<QualifierMetadata> metadataList = get();
@@ -35,14 +35,14 @@ public class QualifierLookupService extends AquariusRetrievalService {
 		
 		return filtered;
 	}
-	
+
 	public List<QualifierMetadata> getByQualifierList(List<Qualifier> includeQualifiers) throws Exception {
 		List<String> qualifierIdentifiers = new ArrayList<>();
-		
+
 		for(Qualifier qual : includeQualifiers) {
 			qualifierIdentifiers.add(qual.getIdentifier());
 		}
-		
+
 		return getByIdentifierList(qualifierIdentifiers);
 	}
 }

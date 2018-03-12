@@ -15,7 +15,7 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Grad
 @Component
 public class GradeLookupService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(GradeLookupService.class);
-	
+
 	//TODO: Use Redis or some other form of caching for this
 
 	public List<GradeMetadata> get() throws Exception {
@@ -23,7 +23,7 @@ public class GradeLookupService extends AquariusRetrievalService {
 		GradeListServiceResponse gradeListResponse = executePublishApiRequest(request);
 		return gradeListResponse.getGrades();
 	}
-	
+
 	public List<GradeMetadata> getByIdentifierList(List<String> includeIdentifiers) throws Exception {
 		List<GradeMetadata> filtered = new ArrayList<>();
 		List<GradeMetadata> metadataList = get();
@@ -32,17 +32,17 @@ public class GradeLookupService extends AquariusRetrievalService {
 				filtered.add(metadata);
 			}
 		}
-		
+
 		return filtered;
 	}
-	
+
 	public List<GradeMetadata> getByGradeList(List<Grade> includeGrades) throws Exception {
 		List<String> gradeIdentifiers = new ArrayList<>();
-		
+
 		for(Grade grade : includeGrades) {
 			gradeIdentifiers.add(grade.getGradeCode());
 		}
-		
+
 		return getByIdentifierList(gradeIdentifiers);
 	}
 }

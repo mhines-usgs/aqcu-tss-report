@@ -14,22 +14,22 @@ import gov.usgs.aqcu.retrieval.TimeSeriesDescriptionListService;
 @Component
 public abstract class AqcuReportBuilderService {	
 	private static final Logger LOG = LoggerFactory.getLogger(AqcuReportBuilderService.class);
-	
+
 	protected Gson gson;
-	
+
 	//Common Builder Services
 	protected AqcuReportMetadataBuilderService reportMetadataBuilderService;
 	protected AqcuDataGapListBuilderService dataGapListBuilderService;
 	protected AqcuReportUrlBuilderService reportUrlBuilderService;
-	
+
 	//Common Lookup Services
 	protected GradeLookupService gradeLookupService;
 	protected QualifierLookupService qualifierLookupService;
-	
+
 	//Common Retrieval Services
 	protected LocationDescriptionListService locationDescriptionListService;
 	protected TimeSeriesDescriptionListService timeSeriesDescriptionListService;
-	
+
 	public AqcuReportBuilderService(
 			Gson gson, 
 			AqcuReportMetadataBuilderService reportMetadataBuilderService,

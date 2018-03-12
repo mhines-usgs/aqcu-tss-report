@@ -26,29 +26,29 @@ public class CorrectionListService extends AquariusRetrievalService {
 		CorrectionListServiceResponse correctionListResponse = executePublishApiRequest(request);
 		return correctionListResponse;
 	}
-	
+
 	public List<Correction> getCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate) throws Exception  {
 		return getRawResponse(timeseriesUniqueId, startDate, endDate).getCorrections();
 	}
-	
+
 	public List<AqcuExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate, List<String> excludedCorrections) throws Exception  {
 		return createAqcuExtendedCorrectionsFromCorrections(getCorrectionList(timeseriesUniqueId, startDate, endDate), excludedCorrections);
 	}
-	
+
 	public List<AqcuExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate) throws Exception  {
 		return getAqcuExtendedCorrectionList(timeseriesUniqueId, startDate, endDate, null);
 	}
-	
+
 	public List<AqcuExtendedCorrection> createAqcuExtendedCorrectionsFromCorrections(List<Correction> sourceCorrections, List<String> excludedCorrections) {
 		List<AqcuExtendedCorrection> correctionList = new ArrayList<>();
-		
+
 		//Convert and Filter Corrections
 		if(sourceCorrections.size() > 0) {
 			for(Correction corr :  sourceCorrections) {
 				//Convert to TSS Correction Object to allow for "CopyPaste" type replacement
 				Boolean doAdd = true;
 				AqcuExtendedCorrection aqcuCorr = new AqcuExtendedCorrection(corr);
-			
+
 				if(excludedCorrections != null && excludedCorrections.size() > 0) {
 					//Filter Excluded Corrections
 					for(String exclude : excludedCorrections) {
@@ -58,13 +58,13 @@ public class CorrectionListService extends AquariusRetrievalService {
 						}
 					}
 				}
-				
+
 				if(doAdd) {
 					correctionList.add(aqcuCorr);
 				}
 			}
 		}
-		
+
 		return correctionList;
 	}
 }

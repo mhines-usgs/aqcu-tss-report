@@ -16,11 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Component
 public class AqcuReportUrlBuilderService {
 	private static final Logger LOG = LoggerFactory.getLogger(AqcuReportUrlBuilderService.class);
-	
+
 	@Autowired
 	private String aqcuWebserviceUrl;
 	private final String SERVICE_ENDPOINT = "/service";
-    private final String REPORTS_ENDPOINT = "/reports";
+	private final String REPORTS_ENDPOINT = "/reports";
 	private Gson gson;
 
 	@Autowired
@@ -40,7 +40,7 @@ public class AqcuReportUrlBuilderService {
 			"endDate=" + gson.toJson(endDate).substring(1,10) + "&" + 
 			"primaryTimeseriesIdentifier=" + primaryTimeseriesIdentifier + "&" +
 			"station=" + stationId;
-			
+
 		for(Map.Entry<String,String> param : additionalParameters.entrySet()) {
 			if(param.getKey() != null && param.getKey().length() > 0 && param.getValue() != null & param.getValue().length() > 0) {
 				reportUrl += "&" + param.getKey() + "=" + param.getValue();
@@ -49,15 +49,14 @@ public class AqcuReportUrlBuilderService {
 
 		return reportUrl;
 	}
-	
+
 	public Map<String,String> buildAqcuReportUrlMapByUnqiueIdList(String reportType, Instant startDate, Instant endDate, List<String> timeseriesIdentifiers, String stationId,  Map<String,String> params) {
 		Map<String,String> urlMap = new HashMap<>();
-		
+
 		for(String identifier : timeseriesIdentifiers) {
 			urlMap.put(identifier, buildAqcuReportUrl(reportType, startDate, endDate, identifier, stationId, params));
 		}
-		
+
 		return urlMap;
 	}
 }
-	

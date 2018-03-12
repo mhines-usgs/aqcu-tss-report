@@ -41,7 +41,7 @@ public class Controller {
 		this.javaToRClient = javaToRClient;
 		this.gson = gson;
 	}
-	
+
 	@GetMapping(produces={MediaType.TEXT_HTML_VALUE})
 	public ResponseEntity<?> getReport(
 			@RequestParam String primaryTimeseriesIdentifier,
@@ -53,7 +53,7 @@ public class Controller {
 
 		//Build the TSS Report JSON
 		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, startDate, endDate, requestingUser);
-		
+
 		byte[] reportHtml = javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
 		return new ResponseEntity<byte[]>(reportHtml, new HttpHeaders(), HttpStatus.OK);
 	}
@@ -66,10 +66,10 @@ public class Controller {
 			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
 		//Pull Requesting User From Headers
 		String requestingUser = "testUser";
-		
+
 		//Build the TSS Report JSON
 		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, startDate, endDate, requestingUser);
-		
+
 		return new ResponseEntity<TimeSeriesSummaryReport>(report, new HttpHeaders(), HttpStatus.OK);
 	}
 }

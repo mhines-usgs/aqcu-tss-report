@@ -22,11 +22,11 @@ public class LocationDescriptionListService extends AquariusRetrievalService {
 		LocationDescriptionListServiceResponse locationResponse = executePublishApiRequest(request);
 		return locationResponse;
 	}
-	
+
 	public List<LocationDescription> getLocationDescriptionList(String stationId) throws Exception {
 		return getRawResponse(stationId).getLocationDescriptions();
 	}
-	
+
 	public LocationDescription getFirstLocationDescription(String stationId) throws Exception {
 		return getLocationDescriptionList(stationId).get(0);
 	}

@@ -26,10 +26,10 @@ public class TimeSeriesDescriptionListService extends AquariusRetrievalService {
 		TimeSeriesDescriptionListByUniqueIdServiceResponse tssDesc = executePublishApiRequest(request);
 		return tssDesc;
 	}
-	
+
 	public List<TimeSeriesDescription> getTimeSeriesDescriptionList(Set<String> timeSeriesUniqueIds) throws Exception {
 		List<TimeSeriesDescription> descList = getRawResponse(new ArrayList<String>(timeSeriesUniqueIds)).getTimeSeriesDescriptions();
-		
+
 		if(descList.size() != timeSeriesUniqueIds.size()) {
 			String errorString = "Failed to fetch descriptions for all requested Time Series Identifiers: \nRequested: " + timeSeriesUniqueIds.size() + 
 				"\nReceived: "  + descList.size();
@@ -39,19 +39,19 @@ public class TimeSeriesDescriptionListService extends AquariusRetrievalService {
 		}
 		return descList;
 	}
-	
+
 	public Map<String,List<TimeSeriesDescription>> getBatchTimeSeriesDescriptionLists(Map<String,List<String>> timeSeriesUniqueIdMap) throws Exception {
 		Map<String,List<TimeSeriesDescription>> outputMap = new HashMap<>();
 		Set<String> timeSeriesUniqueIds = new HashSet<>();
-		
+
 		//Collect all TS Unique IDs
 		for(Map.Entry<String,List<String>> entry : timeSeriesUniqueIdMap.entrySet()) {
 			timeSeriesUniqueIds.addAll(entry.getValue());
 		}
-		
+
 		//Collect All TS Descriptions
 		List<TimeSeriesDescription> fullList = getTimeSeriesDescriptionList(timeSeriesUniqueIds);
-		
+
 		//Assign Descriptions back to proper input key
 		for(Map.Entry<String,List<String>> entry : timeSeriesUniqueIdMap.entrySet()) {
 			List<TimeSeriesDescription> descList = new ArrayList<>();
@@ -65,7 +65,7 @@ public class TimeSeriesDescriptionListService extends AquariusRetrievalService {
 			}
 			outputMap.put(entry.getKey(), descList);
 		}
-		
+
 		//Validate Number of Retrieved Descriptions
 		for(Map.Entry<String,List<String>> entry : timeSeriesUniqueIdMap.entrySet()) {
 			if(outputMap.get(entry.getKey()).size() != entry.getValue().size()) {
@@ -76,7 +76,7 @@ public class TimeSeriesDescriptionListService extends AquariusRetrievalService {
 			throw new Exception(errorString);
 			}
 		}
-		
+
 		return outputMap;
 	}
 }

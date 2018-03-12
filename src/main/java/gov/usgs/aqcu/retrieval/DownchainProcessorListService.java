@@ -28,11 +28,11 @@ public class DownchainProcessorListService extends AquariusRetrievalService {
 		ProcessorListServiceResponse processorsResponse = executePublishApiRequest(request);
 		return processorsResponse;
 	}
-	
+
 	public List<Processor> getProcessorList(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) throws Exception {
 		return getRawResponse(primaryTimeseriesIdentifier, startDate, endDate).getProcessors();
 	}
-	
+
 	public List<String> getOutputTimeSeriesUniqueIdList(ProcessorListServiceResponse response) {
 		Set<String> uniqueIds = new HashSet<>();
 		
@@ -42,7 +42,7 @@ public class DownchainProcessorListService extends AquariusRetrievalService {
 		
 		return new ArrayList<>(uniqueIds);
 	}
-	
+
 	public List<String> getOutputTimeSeriesUniqueIdList(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) throws Exception {
 		return getOutputTimeSeriesUniqueIdList(getRawResponse(primaryTimeseriesIdentifier, startDate, endDate));
 	}

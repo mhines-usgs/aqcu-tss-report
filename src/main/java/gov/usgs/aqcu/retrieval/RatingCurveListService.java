@@ -38,14 +38,14 @@ public class RatingCurveListService extends AquariusRetrievalService {
 		List<RatingCurve> filteredCurves = new ArrayList<>();
 		List<ImmutablePair<Integer,PeriodOfApplicability>> fullPeriodList = new ArrayList<>();
 		List<ImmutablePair<Integer,PeriodOfApplicability>> filteredPeriodList = new ArrayList<>();
-		
+
 		//Get Full List of Curve Periods
 		for(int i = 0; i < responseCurves.size(); i++) {
 			for(PeriodOfApplicability period : responseCurves.get(i).getPeriodsOfApplicability()) {
 				fullPeriodList.add(new ImmutablePair<Integer,PeriodOfApplicability>(i, period));
 			}
 		}
-		
+
 		//Filter Full Period List
 		filteredPeriodList = getRatingPeriodsWithinReportRange(fullPeriodList, startDate, endDate);
 
@@ -118,7 +118,7 @@ public class RatingCurveListService extends AquariusRetrievalService {
 				//If this is the first included Rating Period mark the first rating as having been found
 				if(!foundFirstRating) {
 					foundFirstRating = true;
-					
+
 					// If the previous Period (first Period prior to the Report Start date) is open-ended then include it
 					if(prevPair != null && AqcuTimeUtils.isOpenEndedTime(prevPair.getValue().getEndTime())) {
 						includePairs.add(prevPair);
