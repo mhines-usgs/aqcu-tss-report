@@ -17,7 +17,7 @@ public class TimeSeriesSummaryCorrections {
 		normal = new ArrayList<>();
 		postProcessing = new ArrayList<>();
 
-		if(correctionList != null && correctionList.size() > 0) {
+		if(!correctionList.isEmpty()) {
 			for(AqcuExtendedCorrection corr : correctionList) {
 				if(corr.getProcessingOrder() == CorrectionProcessingOrder.PreProcessing) {
 					preProcessing.add(corr);

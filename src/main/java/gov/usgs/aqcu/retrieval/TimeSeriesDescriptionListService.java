@@ -71,9 +71,9 @@ public class TimeSeriesDescriptionListService extends AquariusRetrievalService {
 		for(Map.Entry<String,List<String>> entry : timeSeriesUniqueIdMap.entrySet()) {
 			if(outputMap.get(entry.getKey()).size() != entry.getValue().size()) {
 				String errorString = "Failed to match returned descriptions to requested time series groups in batch request. Group: " + entry.getKey() + "\nRequested: " +  entry.getValue().size() + 
-				"\nReceived: "  +outputMap.get(entry.getKey()).size();
-			LOG.error(errorString);
-			throw new AquariusProcessingException(errorString);
+					"\nReceived: "  +outputMap.get(entry.getKey()).size();
+				LOG.error(errorString);
+				throw new AquariusProcessingException(errorString);
 			}
 		}
 

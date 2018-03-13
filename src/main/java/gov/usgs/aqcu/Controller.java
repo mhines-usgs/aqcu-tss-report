@@ -1,7 +1,9 @@
 package gov.usgs.aqcu;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.time.Instant;
+import java.time.LocalDate;
 import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +24,7 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.serializers.InstantDeseria
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 import gov.usgs.aqcu.client.JavaToRClient;
 import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
+import gov.usgs.aqcu.util.AqcuTimeUtils;
 
 @RestController
 @Validated
@@ -45,14 +48,21 @@ public class Controller {
 	@GetMapping(produces={MediaType.TEXT_HTML_VALUE})
 	public ResponseEntity<?> getReport(
 			@RequestParam String primaryTimeseriesIdentifier,
-			@RequestParam(required=true) @DateTimeFormat(pattern=InstantDeserializer.Pattern) Instant startDate,
-			@RequestParam(required=true) @DateTimeFormat(pattern=InstantDeserializer.Pattern) Instant endDate,
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+			@RequestParam(required=true) LocalDate startDate,
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+			@RequestParam(required=true) LocalDate endDate,
 			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
 		//Pull Requesting User From Headers
 		String requestingUser = "testUser";
+		
+		//Replace null parameters with empty values
+		if(excludedCorrections == null) {
+			excludedCorrections = new ArrayList<>();
+		}
 
 		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, startDate, endDate, requestingUser);
+		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, AqcuTimeUtils.toReportStartTime(startDate), AqcuTimeUtils.toReportEndTime(endDate), requestingUser);
 
 		byte[] reportHtml = javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
 		return new ResponseEntity<byte[]>(reportHtml, new HttpHeaders(), HttpStatus.OK);
@@ -61,14 +71,21 @@ public class Controller {
 	@GetMapping(value="/rawData", produces={MediaType.APPLICATION_JSON_VALUE})
 	public ResponseEntity<TimeSeriesSummaryReport> getReportRawData(
 			@RequestParam String primaryTimeseriesIdentifier,
-			@RequestParam(required=true) @DateTimeFormat(pattern=InstantDeserializer.Pattern) Instant startDate,
-			@RequestParam(required=true) @DateTimeFormat(pattern=InstantDeserializer.Pattern) Instant endDate,
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+			@RequestParam(required=true) LocalDate startDate,
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+			@RequestParam(required=true) LocalDate endDate,
 			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
 		//Pull Requesting User From Headers
 		String requestingUser = "testUser";
 
+		//Replace null parameters with empty values
+		if(excludedCorrections == null) {
+			excludedCorrections = new ArrayList<>();
+		}
+
 		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, startDate, endDate, requestingUser);
+		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, AqcuTimeUtils.toReportStartTime(startDate), AqcuTimeUtils.toReportEndTime(endDate), requestingUser);
 
 		return new ResponseEntity<TimeSeriesSummaryReport>(report, new HttpHeaders(), HttpStatus.OK);
 	}

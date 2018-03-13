@@ -30,10 +30,6 @@ public class DownchainProcessorListService extends AquariusRetrievalService {
 		return processorsResponse;
 	}
 
-	public List<Processor> getProcessorList(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) throws AquariusException {
-		return getRawResponse(primaryTimeseriesIdentifier, startDate, endDate).getProcessors();
-	}
-
 	public List<String> getOutputTimeSeriesUniqueIdList(List<Processor> processors) {
 		Set<String> uniqueIds = new HashSet<>();
 		

@@ -13,7 +13,7 @@ public class TimeSeriesSummaryRelatedSeries {
 	}
 	
 	public void setIdentifier(String val) {
-		identifier =  val;
+		identifier = val;
 	}
 	
 	public void setUrl(String val) {

@@ -17,8 +17,6 @@ import gov.usgs.aqcu.exception.AquariusException;
 public class QualifierLookupService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(QualifierLookupService.class);
 
-	//TODO: Use Redis or some other form of caching for this
-
 	public List<QualifierMetadata> get() throws AquariusException {
 		QualifierListServiceRequest request = new QualifierListServiceRequest();
 		QualifierListServiceResponse qualifierListResponse = executePublishApiRequest(request);

@@ -17,8 +17,6 @@ import gov.usgs.aqcu.exception.AquariusException;
 public class GradeLookupService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(GradeLookupService.class);
 
-	//TODO: Use Redis or some other form of caching for this
-
 	public List<GradeMetadata> get() throws AquariusException {
 		GradeListServiceRequest request = new GradeListServiceRequest();
 		GradeListServiceResponse gradeListResponse = executePublishApiRequest(request);

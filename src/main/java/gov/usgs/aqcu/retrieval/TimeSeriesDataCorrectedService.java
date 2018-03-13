@@ -14,7 +14,7 @@ import gov.usgs.aqcu.exception.AquariusException;
 public class TimeSeriesDataCorrectedService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesDataCorrectedService.class);
 
-	public TimeSeriesDataServiceResponse get(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) throws AquariusException {
+	public TimeSeriesDataServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) throws AquariusException {
 		TimeSeriesDataCorrectedServiceRequest request = new TimeSeriesDataCorrectedServiceRequest()
 				.setTimeSeriesUniqueId(primaryTimeseriesIdentifier)
 				.setQueryFrom(startDate)

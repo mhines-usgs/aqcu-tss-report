@@ -1,6 +1,8 @@
 package gov.usgs.aqcu.util;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.PeriodOfApplicability;
 
 public abstract class AqcuTimeUtils {
@@ -21,5 +23,15 @@ public abstract class AqcuTimeUtils {
 		}
 
 		return false;
+	}
+
+	public static Instant toReportStartTime(LocalDate startDate) {
+		Instant startTime = startDate.atStartOfDay().toInstant(ZoneOffset.UTC);
+		return startTime;
+	}
+
+	public static Instant toReportEndTime(LocalDate endDate) {
+		Instant endTime = endDate.atTime(23,59,59,999999999).toInstant(ZoneOffset.UTC);
+		return endTime;
 	}
 }

@@ -34,8 +34,7 @@ public class RatingCurveListService extends AquariusRetrievalService {
 		return ratingCurveResponse;
 	}
 
-	public List<RatingCurve> getAqcuFilteredRatingCurves(RatingCurveListServiceResponse response, Instant startDate, Instant endDate) {
-		List<RatingCurve> responseCurves = response.getRatingCurves();
+	public List<RatingCurve> getAqcuFilteredRatingCurves(List<RatingCurve> responseCurves, Instant startDate, Instant endDate) {
 		List<RatingCurve> filteredCurves = new ArrayList<>();
 		List<ImmutablePair<Integer,PeriodOfApplicability>> fullPeriodList = new ArrayList<>();
 		List<ImmutablePair<Integer,PeriodOfApplicability>> filteredPeriodList = new ArrayList<>();
@@ -56,10 +55,6 @@ public class RatingCurveListService extends AquariusRetrievalService {
 		}
 
 		return filteredCurves;
-	}
-	
-	public List<RatingCurve> getAqcuFilteredRatingCurves(String ratingModelIdentifier, Double utcOffset, Instant requestStartDate, Instant requestEndDate, Instant filterStartDate, Instant filterEndDate) throws AquariusException {
-		return getAqcuFilteredRatingCurves(getRawResponse(ratingModelIdentifier, utcOffset, requestStartDate, requestEndDate), filterStartDate, filterEndDate);
 	}
 	
 	public List<RatingShift> getAqcuFilteredRatingShifts(List<RatingCurve> curves, Instant startDate, Instant endDate) {
@@ -88,7 +83,7 @@ public class RatingCurveListService extends AquariusRetrievalService {
 		return filteredShifts;
 	}
 
-	public List<ImmutablePair<Integer,PeriodOfApplicability>> getRatingPeriodsWithinReportRange(List<ImmutablePair<Integer,PeriodOfApplicability>> pairList, Instant startDate, Instant endDate) {
+	private List<ImmutablePair<Integer,PeriodOfApplicability>> getRatingPeriodsWithinReportRange(List<ImmutablePair<Integer,PeriodOfApplicability>> pairList, Instant startDate, Instant endDate) {
 		List<ImmutablePair<Integer,PeriodOfApplicability>> includePairs = new ArrayList<>();
 
 		PeriodOfApplicability reportPeriod = new PeriodOfApplicability();

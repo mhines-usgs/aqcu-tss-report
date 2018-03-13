@@ -24,25 +24,9 @@ public class AqcuReportMetadata {
 	private Map<String, QualifierMetadata> qualifierMetadata;
 	
 	public AqcuReportMetadata() {
-	}
-
-	public AqcuReportMetadata(
-		String reportType,
-		String reportTitle,
-		String primaryTimeSeriesIdentifier,
-		Instant startDate,
-		Instant endDate,
-		Map<String,String> urlParams,
-		String requestingUser) {
-		AqcuReportMetadata metadata = new AqcuReportMetadata();
-
-		metadata.setRequestingUser(requestingUser);
-		metadata.setStartDate(startDate);
-		metadata.setEndDate(endDate);
-		metadata.setTitle(reportTitle);
-		metadata.setReportType(reportType);
-		metadata.setAdvancedOptions(urlParams);
-		metadata.setPrimaryTimeSeriesIdentifier(primaryTimeSeriesIdentifier);
+		advancedOptions = new HashMap<>();
+		gradeMetadata = new HashMap<>();
+		qualifierMetadata = new HashMap<>();
 	}
 
 	public AqcuReportMetadata(
@@ -59,21 +43,19 @@ public class AqcuReportMetadata {
 		Instant endDate,
 		Map<String,String> urlParams,
 		String requestingUser) {
-		AqcuReportMetadata metadata = new AqcuReportMetadata();
-
-		metadata.setRequestingUser(requestingUser);
-		metadata.setTimezone("Etc/GMT+" + (int)(-1 * utcOffset));
-		metadata.setStartDate(startDate);
-		metadata.setEndDate(endDate);
-		metadata.setTitle(reportTitle);
-		metadata.setReportType(reportType);
-		metadata.setAdvancedOptions(urlParams);
-		metadata.setPrimaryParameter(primaryParameter);
-		metadata.setStationName(stationName);
-		metadata.setStationId(stationId);
-		metadata.setQualifierMetadata(qualifierMetadataList);
-		metadata.setGradeMetadata(gradeMetadataList);
-		metadata.setPrimaryTimeSeriesIdentifier(primaryTimeSeriesIdentifier);
+		setRequestingUser(requestingUser);
+		setTimezone((utcOffset != null) ? ("Etc/GMT+" + (int)(-1 * utcOffset)) : null);
+		setStartDate(startDate);
+		setEndDate(endDate);
+		setTitle(reportTitle);
+		setReportType(reportType);
+		setAdvancedOptions(urlParams);
+		setPrimaryParameter(primaryParameter);
+		setStationName(stationName);
+		setStationId(stationId);
+		setQualifierMetadata(qualifierMetadataList);
+		setGradeMetadata(gradeMetadataList);
+		setPrimaryTimeSeriesIdentifier(primaryTimeSeriesIdentifier);
 	}
 	
 	public AqcuReportMetadata(AqcuReportMetadata other) {
@@ -202,21 +184,25 @@ public class AqcuReportMetadata {
 	
 	public void setGradeMetadata(List<GradeMetadata> metadataList) {
 		Map<String, GradeMetadata> map = new HashMap<>();
-		
-		for(GradeMetadata metadata : metadataList) {
-			map.put(metadata.getIdentifier(), metadata);
+
+		if(metadataList != null && !metadataList.isEmpty()) {
+			for(GradeMetadata metadata : metadataList) {
+				map.put(metadata.getIdentifier(), metadata);
+			}
 		}
-		
+
 		gradeMetadata = map;
 	}
 	
 	public void setQualifierMetadata(List<QualifierMetadata> metadataList) {
 		Map<String, QualifierMetadata> map = new HashMap<>();
-		
-		for(QualifierMetadata metadata : metadataList) {
-			map.put(metadata.getIdentifier(), metadata);
+
+		if(metadataList != null && !metadataList.isEmpty()) {
+			for(QualifierMetadata metadata : metadataList) {
+				map.put(metadata.getIdentifier(), metadata);
+			}
 		}
-		
+
 		qualifierMetadata = map;
 	}
 }
