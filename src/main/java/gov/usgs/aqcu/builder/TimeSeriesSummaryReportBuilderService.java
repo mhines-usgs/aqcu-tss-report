@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Processor;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Qualifier;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Grade;
@@ -73,7 +72,7 @@ public class TimeSeriesSummaryReportBuilderService extends AqcuReportBuilderServ
 		report = addLocationData(report, report.getReportMetadata().getStationId());
 		report = addLookupData(report, report.getPrimaryTsData().getGrades(), report.getPrimaryTsData().getQualifiers());
 
-		if(!report.getPrimaryTsData().getProcessors().isEmpty()) {
+		if(!report.getPrimaryTsData().getProcessors().isEmpty() && report.getPrimaryTsData().getProcessors().get(0).getInputRatingModelIdentifier() != null) {
 			report = addRatingInformation(report, report.getPrimaryTsData().getProcessors().get(0).getInputRatingModelIdentifier(), startTime, endTime);
 		}
 		

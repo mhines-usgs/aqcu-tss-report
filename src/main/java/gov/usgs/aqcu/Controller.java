@@ -5,6 +5,7 @@ import java.util.List;
 import java.time.Instant;
 import java.time.LocalDate;
 import com.google.gson.Gson;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +19,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.format.annotation.DateTimeFormat;
-
-import com.aquaticinformatics.aquarius.sdk.timeseries.serializers.InstantDeserializer;
 
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 import gov.usgs.aqcu.client.JavaToRClient;
@@ -49,12 +48,17 @@ public class Controller {
 	public ResponseEntity<?> getReport(
 			@RequestParam String primaryTimeseriesIdentifier,
 			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			@RequestParam(required=true) LocalDate startDate,
+			@RequestParam(required=false) LocalDate startDate,
 			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			@RequestParam(required=true) LocalDate endDate,
+			@RequestParam(required=false) LocalDate endDate,
+			@RequestParam(required=false) Integer waterYear,
+			@RequestParam(required=false) Integer lastMonths,
 			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
 		//Pull Requesting User From Headers
 		String requestingUser = "testUser";
+
+		//Build Report Period
+		Pair<Instant,Instant> reportPeriod = AqcuTimeUtils.getPeportPeriodFromParams(waterYear, lastMonths, startDate, endDate);
 		
 		//Replace null parameters with empty values
 		if(excludedCorrections == null) {
@@ -62,7 +66,7 @@ public class Controller {
 		}
 
 		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, AqcuTimeUtils.toReportStartTime(startDate), AqcuTimeUtils.toReportEndTime(endDate), requestingUser);
+		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, reportPeriod.getKey(), reportPeriod.getValue(), requestingUser);
 
 		byte[] reportHtml = javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
 		return new ResponseEntity<byte[]>(reportHtml, new HttpHeaders(), HttpStatus.OK);
@@ -72,12 +76,17 @@ public class Controller {
 	public ResponseEntity<TimeSeriesSummaryReport> getReportRawData(
 			@RequestParam String primaryTimeseriesIdentifier,
 			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			@RequestParam(required=true) LocalDate startDate,
+			@RequestParam(required=false) LocalDate startDate,
 			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			@RequestParam(required=true) LocalDate endDate,
+			@RequestParam(required=false) LocalDate endDate,
+			@RequestParam(required=false) Integer waterYear,
+			@RequestParam(required=false) Integer lastMonths,
 			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
 		//Pull Requesting User From Headers
 		String requestingUser = "testUser";
+
+		//Build Report Period
+		Pair<Instant,Instant> reportPeriod = AqcuTimeUtils.getPeportPeriodFromParams(waterYear, lastMonths, startDate, endDate);
 
 		//Replace null parameters with empty values
 		if(excludedCorrections == null) {
@@ -85,7 +94,7 @@ public class Controller {
 		}
 
 		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, AqcuTimeUtils.toReportStartTime(startDate), AqcuTimeUtils.toReportEndTime(endDate), requestingUser);
+		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, reportPeriod.getKey(), reportPeriod.getValue(), requestingUser);
 
 		return new ResponseEntity<TimeSeriesSummaryReport>(report, new HttpHeaders(), HttpStatus.OK);
 	}
