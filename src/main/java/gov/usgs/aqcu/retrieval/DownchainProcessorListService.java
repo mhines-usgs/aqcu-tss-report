@@ -1,27 +1,28 @@
 package gov.usgs.aqcu.retrieval;
 
 import java.util.Set;
-import java.util.List;
 import java.util.HashSet;
 import java.util.ArrayList;
+import java.util.List;
 
 import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.stereotype.Component;
 
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.UpchainProcessorListByTimeSeriesServiceRequest;
-import gov.usgs.aqcu.exception.AquariusException;
+import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.DownchainProcessorListByTimeSeriesServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
+import gov.usgs.aqcu.exception.AquariusException;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Processor;
 
 @Component
-public class UpchainProcessorListService extends AquariusRetrievalService {
+public class DownchainProcessorListService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(UpchainProcessorListService.class);
 
 	public ProcessorListServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) throws AquariusException {
-				UpchainProcessorListByTimeSeriesServiceRequest request = new UpchainProcessorListByTimeSeriesServiceRequest()
+				DownchainProcessorListByTimeSeriesServiceRequest request = new DownchainProcessorListByTimeSeriesServiceRequest()
 				.setTimeSeriesUniqueId(primaryTimeseriesIdentifier)
 				.setQueryFrom(startDate)
 				.setQueryTo(endDate);
@@ -29,23 +30,13 @@ public class UpchainProcessorListService extends AquariusRetrievalService {
 		return processorsResponse;
 	}
 
-	public List<String> getInputTimeSeriesUniqueIdList(List<Processor> processors) {
+	public List<String> getOutputTimeSeriesUniqueIdList(List<Processor> processors) {
 		Set<String> uniqueIds = new HashSet<>();
-
+		
 		for(Processor proc : processors) {
-			uniqueIds.addAll(proc.getInputTimeSeriesUniqueIds());
+			uniqueIds.add(proc.getOutputTimeSeriesUniqueId());
 		}
-
-		return new ArrayList<>(uniqueIds);
-	}
-
-	public List<String> getRatingModelUniqueIdList(List<Processor> processors) {
-		Set<String> uniqueIds = new HashSet<>();
-
-		for(Processor proc : processors) {
-			uniqueIds.add(proc.getInputRatingModelIdentifier());
-		}
-
+		
 		return new ArrayList<>(uniqueIds);
 	}
 }

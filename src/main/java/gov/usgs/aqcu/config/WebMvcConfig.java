@@ -81,5 +81,4 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
 		return gson;
 	}
-
 }

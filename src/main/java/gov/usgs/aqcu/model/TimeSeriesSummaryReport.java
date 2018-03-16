@@ -3,26 +3,24 @@ package gov.usgs.aqcu.model;
 import java.util.List;
 import java.util.ArrayList;
 
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescription;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesThreshold;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
 
 public class TimeSeriesSummaryReport {	
-	private TimeSeriesDataServiceResponse primaryTsData;
-	private TimeSeriesDescription upchainTs;
-	private TimeSeriesDescription downchainTs;
+	private TimeSeriesSummaryCorrectedData primaryTsData;
+	private List<TimeSeriesSummaryRelatedSeries> upchainTs;
+	private List<TimeSeriesSummaryRelatedSeries> downchainTs;
 	private TimeSeriesDescription primaryTsMetadata;
 	private TimeSeriesSummaryCorrections corrections;
-	private TimeSeriesSummaryMetadata reportMetadata;
+	private AqcuReportMetadata reportMetadata;
 	private List<RatingCurve> ratingCurves;
 	private List<TimeSeriesSummaryRatingShift> ratingShifts;
 	
 	
 	public TimeSeriesSummaryReport() {
-		primaryTsData = new TimeSeriesDataServiceResponse();
-		upchainTs = new TimeSeriesDescription();
-		downchainTs = new TimeSeriesDescription();
+		primaryTsData = new TimeSeriesSummaryCorrectedData();
+		upchainTs = new ArrayList<>();
+		downchainTs = new ArrayList<>();
 		primaryTsMetadata = new TimeSeriesDescription();
 		corrections = new TimeSeriesSummaryCorrections();
 		reportMetadata = new TimeSeriesSummaryMetadata();
@@ -30,7 +28,7 @@ public class TimeSeriesSummaryReport {
 		ratingShifts = new ArrayList<>();
 	}
 	
-	public TimeSeriesSummaryMetadata getReportMetadata() {
+	public AqcuReportMetadata getReportMetadata() {
 		return reportMetadata;
 	}
 	
@@ -38,15 +36,15 @@ public class TimeSeriesSummaryReport {
 		return corrections;
 	}
 	
-	public TimeSeriesDataServiceResponse getPrimaryTsData() {
+	public TimeSeriesSummaryCorrectedData getPrimaryTsData() {
 		return primaryTsData;
 	}
 	
-	public TimeSeriesDescription getUpchainTs() {
+	public List<TimeSeriesSummaryRelatedSeries> getUpchainTs() {
 		return upchainTs;
 	}
 	
-	public TimeSeriesDescription getDownchainTs() {
+	public List<TimeSeriesSummaryRelatedSeries> getDownchainTs() {
 		return downchainTs;
 	}
 	
@@ -62,7 +60,7 @@ public class TimeSeriesSummaryReport {
 		return ratingShifts;
 	}
 	
-	public void setReportMetadata(TimeSeriesSummaryMetadata val) {
+	public void setReportMetadata(AqcuReportMetadata val) {
 		reportMetadata = val;
 	}
 	
@@ -70,15 +68,15 @@ public class TimeSeriesSummaryReport {
 		corrections = val;
 	}
 	
-	public void setPrimaryTsData(TimeSeriesDataServiceResponse val) {
+	public void setPrimaryTsData(TimeSeriesSummaryCorrectedData val) {
 		primaryTsData = val;
 	}
 	
-	public void setUpchainTs(TimeSeriesDescription val) {
+	public void setUpchainTs(List<TimeSeriesSummaryRelatedSeries> val) {
 		upchainTs = val;
 	}
 	
-	public void setDownchainTs(TimeSeriesDescription val) {
+	public void setDownchainTs(List<TimeSeriesSummaryRelatedSeries> val) {
 		downchainTs = val;
 	}
 	

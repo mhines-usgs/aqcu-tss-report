@@ -1,8 +1,11 @@
 package gov.usgs.aqcu;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.time.Instant;
-
-import org.apache.commons.lang3.StringUtils;
+import java.time.LocalDate;
+import com.google.gson.Gson;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,86 +13,89 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
-import com.google.gson.Gson;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 import gov.usgs.aqcu.client.JavaToRClient;
 import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
-import gov.usgs.aqcu.retrieval.RatingCurveListService;
-import gov.usgs.aqcu.retrieval.TimeSeriesMetadataService;
-import gov.usgs.aqcu.retrieval.UpchainProcessorListService;
+import gov.usgs.aqcu.util.AqcuTimeUtils;
 
 @RestController
+@Validated
 @RequestMapping("/timeseriessummary")
 public class Controller {
 	private static final Logger LOG = LoggerFactory.getLogger(Controller.class);
 	private Gson gson;
-	private TimeSeriesMetadataService timeSeriesMetadataService;
-	private RatingCurveListService ratingCurveListService;
-	private UpchainProcessorListService upchainProcessorListService;
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
 	private JavaToRClient javaToRClient;
 
 	@Autowired
 	public Controller(
-		TimeSeriesMetadataService timeSeriesMetadataService, 
-		UpchainProcessorListService upchainProcessorListService, 
-		RatingCurveListService ratingCurveListService,
 		TimeSeriesSummaryReportBuilderService reportBuilderService,
 		JavaToRClient javaToRClient,
 		Gson gson) {
-		this.timeSeriesMetadataService = timeSeriesMetadataService;
-		this.upchainProcessorListService = upchainProcessorListService;
-		this.ratingCurveListService = ratingCurveListService;
 		this.reportBuilderService = reportBuilderService;
 		this.javaToRClient = javaToRClient;
 		this.gson = gson;
 	}
 
-	@GetMapping(produces="text/html")
-	public byte[] getReport(
+	@GetMapping(produces={MediaType.TEXT_HTML_VALUE})
+	public ResponseEntity<?> getReport(
 			@RequestParam String primaryTimeseriesIdentifier,
-			@RequestParam String station,
-			@RequestParam(required=false) String lastMonths,
-			@RequestParam(required=false) String waterYear,
-			@RequestParam(required=false) String startDateString,
-			@RequestParam(required=false) String endDateString,
-			@RequestParam(required=false) String excludedCorrections) {	
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+			@RequestParam(required=false) LocalDate startDate,
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+			@RequestParam(required=false) LocalDate endDate,
+			@RequestParam(required=false) Integer waterYear,
+			@RequestParam(required=false) Integer lastMonths,
+			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
+		//Pull Requesting User From Headers
+		String requestingUser = "testUser";
 
-		Instant startDate = null;
-		Instant endDate = null;
-
-		if (StringUtils.isNumeric(startDateString)) {
-			startDate = Instant.parse(startDateString);
-		}
-		if (StringUtils.isNumeric(endDateString)) {
-			endDate = Instant.parse(endDateString);
-		}
-		String requestingUser = "tesUser";
-
-		//Fetch Time Series Descriptions
-		TimeSeriesDescriptionListByUniqueIdServiceResponse metadataResponse = timeSeriesMetadataService.get(primaryTimeseriesIdentifier);
+		//Build Report Period
+		Pair<Instant,Instant> reportPeriod = AqcuTimeUtils.getPeportPeriodFromParams(waterYear, lastMonths, startDate, endDate);
 		
-		//Fetch Location Descriptions
-
-
-		//Fetch Upchain Processors
-		ProcessorListServiceResponse processorsResponse = upchainProcessorListService.get(primaryTimeseriesIdentifier, startDate, endDate);
-
-		//Fetch Rating Curves IFF we got at least one upchain processor to pull the rating model identifier from
-		RatingCurveListServiceResponse ratingCurvesResponse = null;
-		if(processorsResponse != null && processorsResponse.getProcessors() != null && processorsResponse.getProcessors().size() > 0) {
-			ratingCurvesResponse = ratingCurveListService.get(processorsResponse.getProcessors().get(0).getInputRatingModelIdentifier(), null, startDate, endDate);
+		//Replace null parameters with empty values
+		if(excludedCorrections == null) {
+			excludedCorrections = new ArrayList<>();
 		}
 
 		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildTimeSeriesSummaryReport(metadataResponse, ratingCurvesResponse, startDate, endDate, requestingUser);
+		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, reportPeriod.getKey(), reportPeriod.getValue(), requestingUser);
 
-		return javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
+		byte[] reportHtml = javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
+		return new ResponseEntity<byte[]>(reportHtml, new HttpHeaders(), HttpStatus.OK);
 	}
+	
+	@GetMapping(value="/rawData", produces={MediaType.APPLICATION_JSON_VALUE})
+	public ResponseEntity<TimeSeriesSummaryReport> getReportRawData(
+			@RequestParam String primaryTimeseriesIdentifier,
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+			@RequestParam(required=false) LocalDate startDate,
+			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+			@RequestParam(required=false) LocalDate endDate,
+			@RequestParam(required=false) Integer waterYear,
+			@RequestParam(required=false) Integer lastMonths,
+			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
+		//Pull Requesting User From Headers
+		String requestingUser = "testUser";
 
+		//Build Report Period
+		Pair<Instant,Instant> reportPeriod = AqcuTimeUtils.getPeportPeriodFromParams(waterYear, lastMonths, startDate, endDate);
+
+		//Replace null parameters with empty values
+		if(excludedCorrections == null) {
+			excludedCorrections = new ArrayList<>();
+		}
+
+		//Build the TSS Report JSON
+		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, reportPeriod.getKey(), reportPeriod.getValue(), requestingUser);
+
+		return new ResponseEntity<TimeSeriesSummaryReport>(report, new HttpHeaders(), HttpStatus.OK);
+	}
 }
