@@ -14,14 +14,13 @@ import org.springframework.stereotype.Component;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.DownchainProcessorListByTimeSeriesServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
-import gov.usgs.aqcu.exception.AquariusException;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Processor;
 
 @Component
 public class DownchainProcessorListService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(UpchainProcessorListService.class);
 
-	public ProcessorListServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) throws AquariusException {
+	public ProcessorListServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) {
 				DownchainProcessorListByTimeSeriesServiceRequest request = new DownchainProcessorListByTimeSeriesServiceRequest()
 				.setTimeSeriesUniqueId(primaryTimeseriesIdentifier)
 				.setQueryFrom(startDate)

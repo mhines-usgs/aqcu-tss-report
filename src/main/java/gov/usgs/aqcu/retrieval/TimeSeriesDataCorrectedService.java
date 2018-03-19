@@ -8,13 +8,12 @@ import org.springframework.stereotype.Component;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataCorrectedServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
-import gov.usgs.aqcu.exception.AquariusException;
 
 @Component
 public class TimeSeriesDataCorrectedService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesDataCorrectedService.class);
 
-	public TimeSeriesDataServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) throws AquariusException {
+	public TimeSeriesDataServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) {
 		TimeSeriesDataCorrectedServiceRequest request = new TimeSeriesDataCorrectedServiceRequest()
 				.setTimeSeriesUniqueId(primaryTimeseriesIdentifier)
 				.setQueryFrom(startDate)

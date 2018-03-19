@@ -7,18 +7,18 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Corr
 import java.util.ArrayList;
 
 public class TimeSeriesSummaryCorrections {	
-	private List<AqcuExtendedCorrection> preProcessing;
-	private List<AqcuExtendedCorrection> normal;
-	private List<AqcuExtendedCorrection> postProcessing;
+	private List<ExtendedCorrection> preProcessing;
+	private List<ExtendedCorrection> normal;
+	private List<ExtendedCorrection> postProcessing;
 	String corrUrl;
 
-	public TimeSeriesSummaryCorrections(List<AqcuExtendedCorrection> correctionList, String corrUrl) {
+	public TimeSeriesSummaryCorrections(List<ExtendedCorrection> correctionList, String corrUrl) {
 		preProcessing = new ArrayList<>();
 		normal = new ArrayList<>();
 		postProcessing = new ArrayList<>();
 
 		if(!correctionList.isEmpty()) {
-			for(AqcuExtendedCorrection corr : correctionList) {
+			for(ExtendedCorrection corr : correctionList) {
 				if(corr.getProcessingOrder() == CorrectionProcessingOrder.PreProcessing) {
 					preProcessing.add(corr);
 				} else if(corr.getProcessingOrder() == CorrectionProcessingOrder.Normal) {
@@ -38,15 +38,15 @@ public class TimeSeriesSummaryCorrections {
 		postProcessing  = new ArrayList<>();
 	}
 	
-	public List<AqcuExtendedCorrection> getPreProcessing() {
+	public List<ExtendedCorrection> getPreProcessing() {
 		return preProcessing;
 	}
 	
-	public List<AqcuExtendedCorrection> getNormal() {
+	public List<ExtendedCorrection> getNormal() {
 		return normal;
 	}
 	
-	public List<AqcuExtendedCorrection> getPostProcessing() {
+	public List<ExtendedCorrection> getPostProcessing() {
 		return postProcessing;
 	}
 	
@@ -54,15 +54,15 @@ public class TimeSeriesSummaryCorrections {
 		return corrUrl;
 	}
 
-	public void setPreProcessing(List<AqcuExtendedCorrection> val) {
+	public void setPreProcessing(List<ExtendedCorrection> val) {
 		preProcessing = val;
 	}
 	
-	public void setNormal(List<AqcuExtendedCorrection> val) {
+	public void setNormal(List<ExtendedCorrection> val) {
 		normal = val;
 	}
 	
-	public void setPostProcessing(List<AqcuExtendedCorrection> val) {
+	public void setPostProcessing(List<ExtendedCorrection> val) {
 		postProcessing = val;
 	}
 	

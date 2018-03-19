@@ -6,10 +6,10 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Time
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Processor;
 
 public class TimeSeriesSummaryCorrectedData extends TimeSeriesDataServiceResponse {
-	private List<AqcuDataGap> gaps;
+	private List<DataGap> gaps;
 	private List<Processor> processors;
 
-	public TimeSeriesSummaryCorrectedData(TimeSeriesDataServiceResponse response, List<Processor> upchainProcessorList, List<AqcuDataGap> gapList) {
+	public TimeSeriesSummaryCorrectedData(TimeSeriesDataServiceResponse response, List<Processor> upchainProcessorList, List<DataGap> gapList) {
 		setApprovals(response.getApprovals());
 		setQualifiers(response.getQualifiers());
 		setNotes(response.getNotes());
@@ -26,11 +26,11 @@ public class TimeSeriesSummaryCorrectedData extends TimeSeriesDataServiceRespons
 		processors = new ArrayList<>();
 	}
 	
-	public List<AqcuDataGap> getGaps() {
+	public List<DataGap> getGaps() {
 		return gaps;
 	}
 	
-	public void setGaps(List<AqcuDataGap> val) {
+	public void setGaps(List<DataGap> val) {
 		gaps = val;
 	}
 	

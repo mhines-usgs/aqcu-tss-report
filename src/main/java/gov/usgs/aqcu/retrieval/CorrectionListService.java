@@ -12,14 +12,13 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Corr
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Correction;
 
-import gov.usgs.aqcu.exception.AquariusException;
-import gov.usgs.aqcu.model.AqcuExtendedCorrection;
+import gov.usgs.aqcu.model.ExtendedCorrection;
 
 @Component
 public class CorrectionListService extends AquariusRetrievalService {
 	private static final Logger LOG = LoggerFactory.getLogger(RatingCurveListService.class);
 
-	public CorrectionListServiceResponse getRawResponse(String timeseriesUniqueId, Instant startDate, Instant endDate) throws AquariusException {
+	public CorrectionListServiceResponse getRawResponse(String timeseriesUniqueId, Instant startDate, Instant endDate) {
 		CorrectionListServiceRequest request = new CorrectionListServiceRequest()
 				.setTimeSeriesUniqueId(timeseriesUniqueId)
 				.setQueryFrom(startDate)
@@ -28,23 +27,23 @@ public class CorrectionListService extends AquariusRetrievalService {
 		return correctionListResponse;
 	}
 
-	public List<AqcuExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate, List<String> excludedCorrections) throws AquariusException {
+	public List<ExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate, List<String> excludedCorrections) {
 		return createAqcuExtendedCorrectionsFromCorrections(getRawResponse(timeseriesUniqueId, startDate, endDate).getCorrections(), excludedCorrections);
 	}
 
-	public List<AqcuExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate) throws AquariusException {
+	public List<ExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate) {
 		return getAqcuExtendedCorrectionList(timeseriesUniqueId, startDate, endDate, null);
 	}
 
-	private List<AqcuExtendedCorrection> createAqcuExtendedCorrectionsFromCorrections(List<Correction> sourceCorrections, List<String> excludedCorrections) {
-		List<AqcuExtendedCorrection> correctionList = new ArrayList<>();
+	private List<ExtendedCorrection> createAqcuExtendedCorrectionsFromCorrections(List<Correction> sourceCorrections, List<String> excludedCorrections) {
+		List<ExtendedCorrection> correctionList = new ArrayList<>();
 
 		//Convert and Filter Corrections
 		if(!sourceCorrections.isEmpty()) {
 			for(Correction corr :  sourceCorrections) {
 				//Convert to TSS Correction Object to allow for "CopyPaste" type replacement
 				Boolean doAdd = true;
-				AqcuExtendedCorrection aqcuCorr = new AqcuExtendedCorrection(corr);
+				ExtendedCorrection aqcuCorr = new ExtendedCorrection(corr);
 
 				if(excludedCorrections.isEmpty()) {
 					//Filter Excluded Corrections

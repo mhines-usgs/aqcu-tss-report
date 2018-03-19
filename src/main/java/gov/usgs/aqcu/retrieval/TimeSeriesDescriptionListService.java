@@ -9,27 +9,34 @@ import java.util.HashSet;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
-import gov.usgs.aqcu.exception.AquariusException;
 import gov.usgs.aqcu.exception.AquariusProcessingException;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescription;
 
 
 @Component
-public class TimeSeriesDescriptionListService extends AquariusRetrievalService {
-	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesDescriptionListService.class);
+public class TimeSeriesDescriptionListService {
+	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesDescriptionListService.class);	
+	
+	private AquariusRetrievalService aquariusRetrievalService;
 
-	public TimeSeriesDescriptionListByUniqueIdServiceResponse getRawResponse(List<String> timeSeriesUniqueIds) throws AquariusException {
+	@Autowired
+	public TimeSeriesDescriptionListService(AquariusRetrievalService aquariusRetrievalService) {
+		this.aquariusRetrievalService = aquariusRetrievalService;
+	}
+
+	public TimeSeriesDescriptionListByUniqueIdServiceResponse getRawResponse(List<String> timeSeriesUniqueIds) {
 		TimeSeriesDescriptionListByUniqueIdServiceRequest request = new TimeSeriesDescriptionListByUniqueIdServiceRequest()
 				.setTimeSeriesUniqueIds(new ArrayList<>(timeSeriesUniqueIds));
-		TimeSeriesDescriptionListByUniqueIdServiceResponse tssDesc = executePublishApiRequest(request);
+		TimeSeriesDescriptionListByUniqueIdServiceResponse tssDesc = aquariusRetrievalService.executePublishApiRequest(request);
 		return tssDesc;
 	}
 
-	public List<TimeSeriesDescription> getTimeSeriesDescriptionList(Set<String> timeSeriesUniqueIds) throws AquariusException {
+	public List<TimeSeriesDescription> getTimeSeriesDescriptionList(Set<String> timeSeriesUniqueIds) {
 		List<TimeSeriesDescription> descList = getRawResponse(new ArrayList<String>(timeSeriesUniqueIds)).getTimeSeriesDescriptions();
 
 		if(descList.size() != timeSeriesUniqueIds.size()) {
@@ -41,7 +48,7 @@ public class TimeSeriesDescriptionListService extends AquariusRetrievalService {
 		return descList;
 	}
 
-	public Map<String,List<TimeSeriesDescription>> getBatchTimeSeriesDescriptionLists(Map<String,List<String>> timeSeriesUniqueIdMap) throws AquariusException {
+	public Map<String,List<TimeSeriesDescription>> getBatchTimeSeriesDescriptionLists(Map<String,List<String>> timeSeriesUniqueIdMap) {
 		Map<String,List<TimeSeriesDescription>> outputMap = new HashMap<>();
 		Set<String> timeSeriesUniqueIds = new HashSet<>();
 
