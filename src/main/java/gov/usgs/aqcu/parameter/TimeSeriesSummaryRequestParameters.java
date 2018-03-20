@@ -9,11 +9,6 @@ public class TimeSeriesSummaryRequestParameters extends RequestParameters {
 
 	public TimeSeriesSummaryRequestParameters() {}
 
-	public TimeSeriesSummaryRequestParameters(TimeSeriesSummaryRequestParameters other) {
-		super(other);
-		setExcludedCorrections(other.getExcludedCorrections());
-	}
-
 	public List<String> getExcludedCorrections() {
 		//Set default value if null
 		if(excludedCorrections == null) {

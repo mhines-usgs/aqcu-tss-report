@@ -2,9 +2,6 @@ package gov.usgs.aqcu.config;
 
 import java.util.concurrent.TimeUnit;
 import java.util.List;
-import java.lang.reflect.Field;
-import java.time.Instant;
-import java.time.LocalDate;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,16 +14,8 @@ import org.springframework.web.servlet.resource.WebJarsResourceResolver;
 import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 
-import springfox.documentation.spring.web.json.Json;
-
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.FieldNamingStrategy;
-
-import com.aquaticinformatics.aquarius.sdk.timeseries.serializers.InstantSerializer;
-import com.aquaticinformatics.aquarius.sdk.timeseries.serializers.InstantDeserializer;
-import gov.usgs.aqcu.serializer.SwaggerGsonSerializer;
-import gov.usgs.aqcu.serializer.LocalDateGsonSerializer;
+import gov.usgs.aqcu.util.AqcuGsonFactory;
 
 @Configuration
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
@@ -60,28 +49,6 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
 	@Bean
 	public Gson gson() {
-		FieldNamingStrategy LOWER_CASE_CAMEL_CASE = new FieldNamingStrategy() {  
-			@Override
-			public String translateName(Field f) {
-				String fName = f.getName();
-				if(fName != null && fName.length() > 0) {
-					char c[] = f.getName().toCharArray();
-					c[0] = Character.toLowerCase(c[0]);
-					return new String(c);
-				} else {
-					return fName;
-				}
-			}
-		};
-
-		Gson gson = new GsonBuilder()
-			.registerTypeAdapter(Instant.class, new InstantSerializer())
-			.registerTypeAdapter(Instant.class, new InstantDeserializer())
-			.registerTypeAdapter(Json.class, new SwaggerGsonSerializer())
-			.registerTypeAdapter(LocalDate.class, new LocalDateGsonSerializer())
-			.setFieldNamingStrategy(LOWER_CASE_CAMEL_CASE)
-			.create();
-
-		return gson;
+		return AqcuGsonFactory.getConfiguredGson();
 	}
 }

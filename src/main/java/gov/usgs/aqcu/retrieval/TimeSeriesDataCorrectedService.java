@@ -4,14 +4,24 @@ import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataCorrectedServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
 
 @Component
-public class TimeSeriesDataCorrectedService extends AquariusRetrievalService {
+public class TimeSeriesDataCorrectedService {
 	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesDataCorrectedService.class);
+
+	private AquariusRetrievalService aquariusRetrievalService;
+
+	@Autowired
+	public TimeSeriesDataCorrectedService(
+		AquariusRetrievalService aquariusRetrievalService
+	) {
+		this.aquariusRetrievalService = aquariusRetrievalService;
+	}
 
 	public TimeSeriesDataServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) {
 		TimeSeriesDataCorrectedServiceRequest request = new TimeSeriesDataCorrectedServiceRequest()
@@ -19,7 +29,7 @@ public class TimeSeriesDataCorrectedService extends AquariusRetrievalService {
 				.setQueryFrom(startDate)
 				.setIncludeGapMarkers(true)
 				.setQueryTo(endDate);
-		TimeSeriesDataServiceResponse timeSeriesResponse  = executePublishApiRequest(request);
+		TimeSeriesDataServiceResponse timeSeriesResponse = aquariusRetrievalService.executePublishApiRequest(request);
 		return timeSeriesResponse;
 	}
 }

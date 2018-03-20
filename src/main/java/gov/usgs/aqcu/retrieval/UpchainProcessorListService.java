@@ -9,6 +9,7 @@ import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.UpchainProcessorListByTimeSeriesServiceRequest;
@@ -16,15 +17,24 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Proc
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Processor;
 
 @Component
-public class UpchainProcessorListService extends AquariusRetrievalService {
+public class UpchainProcessorListService {
 	private static final Logger LOG = LoggerFactory.getLogger(UpchainProcessorListService.class);
 
+	private AquariusRetrievalService aquariusRetrievalService;
+
+	@Autowired
+	public UpchainProcessorListService(
+		AquariusRetrievalService aquariusRetrievalService
+	) {
+		this.aquariusRetrievalService = aquariusRetrievalService;
+	}
+	
 	public ProcessorListServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) {
 				UpchainProcessorListByTimeSeriesServiceRequest request = new UpchainProcessorListByTimeSeriesServiceRequest()
 				.setTimeSeriesUniqueId(primaryTimeseriesIdentifier)
 				.setQueryFrom(startDate)
 				.setQueryTo(endDate);
-		ProcessorListServiceResponse processorsResponse = executePublishApiRequest(request);
+		ProcessorListServiceResponse processorsResponse = aquariusRetrievalService.executePublishApiRequest(request);
 		return processorsResponse;
 	}
 

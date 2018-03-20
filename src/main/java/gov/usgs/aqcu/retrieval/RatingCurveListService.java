@@ -9,6 +9,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceRequest;
@@ -20,8 +21,17 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Rati
 import gov.usgs.aqcu.util.AqcuTimeUtils;
 
 @Component
-public class RatingCurveListService extends AquariusRetrievalService {
+public class RatingCurveListService {
 	private static final Logger LOG = LoggerFactory.getLogger(RatingCurveListService.class);
+
+	private AquariusRetrievalService aquariusRetrievalService;
+
+	@Autowired
+	public RatingCurveListService(
+		AquariusRetrievalService aquariusRetrievalService
+	) {
+		this.aquariusRetrievalService = aquariusRetrievalService;
+	}
 
 	public RatingCurveListServiceResponse getRawResponse(String ratingModelIdentifier, Double utcOffset, Instant startDate, Instant endDate) {
 		RatingCurveListServiceRequest request = new RatingCurveListServiceRequest()
@@ -29,7 +39,7 @@ public class RatingCurveListService extends AquariusRetrievalService {
 				.setUtcOffset(utcOffset)
 				.setQueryFrom(startDate)
 				.setQueryTo(endDate);
-		RatingCurveListServiceResponse ratingCurveResponse = executePublishApiRequest(request);
+		RatingCurveListServiceResponse ratingCurveResponse = aquariusRetrievalService.executePublishApiRequest(request);
 		return ratingCurveResponse;
 	}
 

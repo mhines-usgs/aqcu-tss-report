@@ -22,7 +22,9 @@ public class GradeLookupService {
 	private AquariusRetrievalService aquariusRetrievalService;
 
 	@Autowired
-	public GradeLookupService(AquariusRetrievalService aquariusRetrievalService) {
+	public GradeLookupService(
+		AquariusRetrievalService aquariusRetrievalService
+	) {
 		this.aquariusRetrievalService = aquariusRetrievalService;
 	}
 

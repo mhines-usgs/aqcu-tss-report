@@ -21,11 +21,13 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Time
 @Component
 public class TimeSeriesDescriptionListService {
 	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesDescriptionListService.class);	
-	
+
 	private AquariusRetrievalService aquariusRetrievalService;
 
 	@Autowired
-	public TimeSeriesDescriptionListService(AquariusRetrievalService aquariusRetrievalService) {
+	public TimeSeriesDescriptionListService(
+		AquariusRetrievalService aquariusRetrievalService
+	) {
 		this.aquariusRetrievalService = aquariusRetrievalService;
 	}
 
