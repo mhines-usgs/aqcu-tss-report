@@ -12,7 +12,7 @@ public class TimeSeriesSummaryReport {
 	private List<TimeSeriesSummaryRelatedSeries> downchainTs;
 	private TimeSeriesDescription primaryTsMetadata;
 	private TimeSeriesSummaryCorrections corrections;
-	private ReportMetadata reportMetadata;
+	private TimeSeriesSummaryReportMetadata reportMetadata;
 	private List<RatingCurve> ratingCurves;
 	private List<TimeSeriesSummaryRatingShift> ratingShifts;
 	
@@ -23,12 +23,12 @@ public class TimeSeriesSummaryReport {
 		downchainTs = new ArrayList<>();
 		primaryTsMetadata = new TimeSeriesDescription();
 		corrections = new TimeSeriesSummaryCorrections();
-		reportMetadata = new ReportMetadata();
+		reportMetadata = new TimeSeriesSummaryReportMetadata();
 		ratingCurves = new ArrayList<>();
 		ratingShifts = new ArrayList<>();
 	}
 	
-	public ReportMetadata getReportMetadata() {
+	public TimeSeriesSummaryReportMetadata getReportMetadata() {
 		return reportMetadata;
 	}
 	
@@ -60,7 +60,7 @@ public class TimeSeriesSummaryReport {
 		return ratingShifts;
 	}
 	
-	public void setReportMetadata(ReportMetadata val) {
+	public void setReportMetadata(TimeSeriesSummaryReportMetadata val) {
 		reportMetadata = val;
 	}
 	

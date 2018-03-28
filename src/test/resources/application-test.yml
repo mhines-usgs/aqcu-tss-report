@@ -1,0 +1,8 @@
+aqcu:
+  reports:
+    webservice: "http://test.gov/timeseries-ws/"
+aquarius:
+  service:
+    endpoint: "https://test-aquarius.gov/"
+    user: "test"
+    password: "test"

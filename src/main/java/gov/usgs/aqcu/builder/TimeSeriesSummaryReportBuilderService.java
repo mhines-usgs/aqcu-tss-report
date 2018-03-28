@@ -88,7 +88,7 @@ public class TimeSeriesSummaryReportBuilderService {
 	}
 
 	private TimeSeriesSummaryReport addBasicReportMetadata(TimeSeriesSummaryReport report, TimeSeriesSummaryRequestParameters requestParameters, String requestingUser) {
-		report.setReportMetadata(new ReportMetadata(REPORT_TYPE, REPORT_TITLE, requestParameters, requestingUser, null, null, null, null, null, null));
+		report.setReportMetadata(new TimeSeriesSummaryReportMetadata(REPORT_TYPE, REPORT_TITLE, requestParameters, requestingUser, null, null, null, null, null, null));
 		return report;
 	}
 
@@ -115,7 +115,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		TimeSeriesDataServiceResponse dataResponse = timeSeriesDataCorrectedService.getRawResponse(primaryTimeseriesIdentifier, startTime, endTime);
 
 		//Calculate Data Gaps
-		List<DataGap> gapList = dataGapListBuilderService.buildGapList(dataResponse.getPoints(), startTime, endTime);
+		List<DataGap> gapList = dataGapListBuilderService.buildGapList(dataResponse.getPoints());
 
 		//Build Upchain and Downchain URLs
 		Map<String,String> upchainUrls = reportUrlBuilderService.buildAqcuReportUrlMapByUnqiueIdList("timeseriessummary", primaryDescription.getLocationIdentifier(), requestParameters, upchainUniqueIdList);
@@ -134,7 +134,7 @@ public class TimeSeriesSummaryReportBuilderService {
 
 	private TimeSeriesSummaryReport addCorrectionsData(TimeSeriesSummaryReport report, String primaryTimeSeriesIdentifier, Instant startTime, Instant endTime, String stationId, TimeSeriesSummaryRequestParameters requestParameters) {
 		String corrUrl = reportUrlBuilderService.buildAqcuReportUrl("correctionsataglance", stationId, requestParameters, null);
-		List<ExtendedCorrection> correctionList = correctionListService.getAqcuExtendedCorrectionList(primaryTimeSeriesIdentifier, startTime, endTime, requestParameters.getExcludedCorrections());
+		List<ExtendedCorrection> correctionList = correctionListService.getExtendedCorrectionList(primaryTimeSeriesIdentifier, startTime, endTime, requestParameters.getExcludedCorrections());
 
 		report.setCorrections(new TimeSeriesSummaryCorrections(correctionList, corrUrl));
 

@@ -15,7 +15,10 @@ import org.springframework.http.converter.json.GsonHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 
 import com.google.gson.Gson;
-import gov.usgs.aqcu.util.AqcuGsonFactory;
+
+import gov.usgs.aqcu.serializer.SwaggerGsonSerializer;
+import gov.usgs.aqcu.util.AqcuGsonBuilderFactory;
+import springfox.documentation.spring.web.json.Json;
 
 @Configuration
 public class WebMvcConfig extends WebMvcConfigurerAdapter {
@@ -49,6 +52,8 @@ public class WebMvcConfig extends WebMvcConfigurerAdapter {
 
 	@Bean
 	public Gson gson() {
-		return AqcuGsonFactory.getConfiguredGson();
+		return AqcuGsonBuilderFactory.getConfiguredGsonBuilder()
+			.registerTypeAdapter(Json.class, new SwaggerGsonSerializer())
+			.create();
 	}
 }

@@ -37,15 +37,15 @@ public class CorrectionListService  {
 		return correctionListResponse;
 	}
 
-	public List<ExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate, List<String> excludedCorrections) {
-		return createAqcuExtendedCorrectionsFromCorrections(getRawResponse(timeseriesUniqueId, startDate, endDate).getCorrections(), excludedCorrections);
+	public List<ExtendedCorrection> getExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate, List<String> excludedCorrections) {
+		return createExtendedCorrectionsFromCorrections(getRawResponse(timeseriesUniqueId, startDate, endDate).getCorrections(), excludedCorrections);
 	}
 
-	public List<ExtendedCorrection> getAqcuExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate) {
-		return getAqcuExtendedCorrectionList(timeseriesUniqueId, startDate, endDate, null);
+	public List<ExtendedCorrection> getExtendedCorrectionList(String timeseriesUniqueId, Instant startDate, Instant endDate) {
+		return getExtendedCorrectionList(timeseriesUniqueId, startDate, endDate, null);
 	}
 
-	private List<ExtendedCorrection> createAqcuExtendedCorrectionsFromCorrections(List<Correction> sourceCorrections, List<String> excludedCorrections) {
+	private List<ExtendedCorrection> createExtendedCorrectionsFromCorrections(List<Correction> sourceCorrections, List<String> excludedCorrections) {
 		List<ExtendedCorrection> correctionList = new ArrayList<>();
 
 		//Convert and Filter Corrections
@@ -55,7 +55,7 @@ public class CorrectionListService  {
 				Boolean doAdd = true;
 				ExtendedCorrection aqcuCorr = new ExtendedCorrection(corr);
 
-				if(excludedCorrections.isEmpty()) {
+				if(excludedCorrections != null && !excludedCorrections.isEmpty()) {
 					//Filter Excluded Corrections
 					for(String exclude : excludedCorrections) {
 						if(exclude.equalsIgnoreCase(aqcuCorr.getDominantType())) {
