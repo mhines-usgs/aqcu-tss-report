@@ -1,7 +1,6 @@
 package gov.usgs.aqcu.parameter;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.time.Instant;
 import java.time.LocalDate;

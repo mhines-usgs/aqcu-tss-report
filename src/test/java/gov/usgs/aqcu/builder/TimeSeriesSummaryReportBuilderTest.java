@@ -2,7 +2,6 @@ package gov.usgs.aqcu.builder;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.arrayContainingInAnyOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -26,10 +24,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import gov.usgs.aqcu.model.DataGap;
 import gov.usgs.aqcu.model.ExtendedCorrection;
-import gov.usgs.aqcu.model.ReportMetadata;
-import gov.usgs.aqcu.model.TimeSeriesSummaryCorrections;
 import gov.usgs.aqcu.model.TimeSeriesSummaryRatingShift;
 import gov.usgs.aqcu.model.TimeSeriesSummaryRelatedSeries;
 import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
@@ -56,17 +51,12 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Proc
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShift;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Correction;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.CorrectionListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.LocationDescription;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Processor;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeRange;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescription;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
-import com.fasterxml.jackson.databind.jsontype.impl.AsWrapperTypeSerializer;
 import com.google.gson.Gson;
-
-import net.servicestack.client.IReturn;
 
 @SpringBootTest
 @RunWith(SpringRunner.class)
@@ -121,7 +111,6 @@ public class TimeSeriesSummaryReportBuilderTest {
 	LocationDescription primaryLoc = new LocationDescription().setIdentifier(primaryDesc.getUniqueId()).setName("loc-name");
 
 	@Before
-	@SuppressWarnings("unchecked")
 	public void setup() {
 		//Builder Servies		
 		gapService = new DataGapListBuilderService();
