@@ -39,62 +39,62 @@ public class RatingCurveListServiceTest {
 	Instant startTime = Instant.parse("2017-01-01T00:00:00Z");
 	Instant endTime = Instant.parse("2017-01-10T00:00:00Z");
 
-	PeriodOfApplicability periodA = new PeriodOfApplicability()
+	private static final PeriodOfApplicability periodA = new PeriodOfApplicability()
 		.setStartTime(Instant.parse("2017-01-01T00:00:00Z"))
 		.setEndTime(Instant.parse("2017-01-02T00:00:00Z"))
 		.setRemarks("premarks-a");
-	PeriodOfApplicability periodB = new PeriodOfApplicability()
+	private static final PeriodOfApplicability periodB = new PeriodOfApplicability()
 		.setStartTime(Instant.parse("2017-01-02T00:00:00Z"))
 		.setEndTime(Instant.parse("9999-12-31T23:59:59.9999999Z"))
 		.setRemarks("premarks-b");
-	PeriodOfApplicability periodC = new PeriodOfApplicability()
+	private static final PeriodOfApplicability periodC = new PeriodOfApplicability()
 		.setStartTime(Instant.parse("2017-01-04T00:00:00Z"))
 		.setEndTime(Instant.parse("9999-12-31T23:59:59.9999999Z"))
 		.setRemarks("premarks-a");
-	PeriodOfApplicability periodD = new PeriodOfApplicability()
+	private static final PeriodOfApplicability periodD = new PeriodOfApplicability()
 		.setStartTime(Instant.parse("2017-01-05T00:00:00Z"))
 		.setEndTime(Instant.parse("2017-01-07T00:00:00Z"))
 		.setRemarks("premarks-b");
-	PeriodOfApplicability periodE = new PeriodOfApplicability()
+	private static final PeriodOfApplicability periodE = new PeriodOfApplicability()
 		.setStartTime(Instant.parse("2017-01-07T00:00:00Z"))
 		.setEndTime(Instant.parse("9999-12-31T23:59:59.9999999Z"))
 		.setRemarks("premarks-a");
-	PeriodOfApplicability periodF = new PeriodOfApplicability()
+	private static final PeriodOfApplicability periodF = new PeriodOfApplicability()
 		.setStartTime(Instant.parse("2017-01-10T00:00:00Z"))
 		.setEndTime(Instant.parse("9999-12-31T23:59:59.9999999Z"))
 		.setRemarks("premarks-b");
-	PeriodOfApplicability periodG = new PeriodOfApplicability()
+	private static final PeriodOfApplicability periodG = new PeriodOfApplicability()
 		.setStartTime(Instant.parse("2017-01-11T00:00:00Z"))
 		.setEndTime(Instant.parse("2017-01-12T00:00:00Z"))
 		.setRemarks("premarks-a");
-	PeriodOfApplicability periodH = new PeriodOfApplicability()
+	private static final PeriodOfApplicability periodH = new PeriodOfApplicability()
 		.setStartTime(Instant.parse("2017-01-12T00:00:00Z"))
 		.setEndTime(Instant.parse("9999-12-31T23:59:59.9999999Z"))
 		.setRemarks("premarks-b");
 
-	RatingShift shiftA1 = new RatingShift()
+	private static final RatingShift shiftA1 = new RatingShift()
 		.setPeriodOfApplicability(periodA)
 		.setShiftPoints(new ArrayList<>(Arrays.asList(new RatingShiftPoint().setInputValue(1.0).setShift(1.0))));
-	RatingShift shiftA2 = new RatingShift()
+	private static final RatingShift shiftA2 = new RatingShift()
 		.setPeriodOfApplicability(periodB)
 		.setShiftPoints(new ArrayList<>(Arrays.asList(new RatingShiftPoint().setInputValue(1.0).setShift(1.0))));
-	RatingShift shiftA3 = new RatingShift()
+	private static final RatingShift shiftA3 = new RatingShift()
 		.setPeriodOfApplicability(periodE)
 		.setShiftPoints(new ArrayList<>(Arrays.asList(new RatingShiftPoint().setInputValue(1.0).setShift(1.0))));
-	RatingShift shiftA4 = new RatingShift()
+	private static final RatingShift shiftA4 = new RatingShift()
 		.setPeriodOfApplicability(periodF)
 		.setShiftPoints(new ArrayList<>(Arrays.asList(new RatingShiftPoint().setInputValue(1.0).setShift(1.0))));
-	RatingShift shiftB1 = new RatingShift()
+	private static final RatingShift shiftB1 = new RatingShift()
 		.setPeriodOfApplicability(periodC)
 		.setShiftPoints(new ArrayList<>(Arrays.asList(new RatingShiftPoint().setInputValue(1.0).setShift(1.0))));
-	RatingShift shiftB2 = new RatingShift()
+	private static final RatingShift shiftB2 = new RatingShift()
 		.setPeriodOfApplicability(periodD)
 		.setShiftPoints(new ArrayList<>(Arrays.asList(new RatingShiftPoint().setInputValue(1.0).setShift(1.0))));
-	RatingShift shiftC1 = new RatingShift()
+	private static final RatingShift shiftC1 = new RatingShift()
 		.setPeriodOfApplicability(periodG)
 		.setShiftPoints(new ArrayList<>(Arrays.asList(new RatingShiftPoint().setInputValue(1.0).setShift(1.0))));
 
-	RatingCurve curveA = new RatingCurve()
+	public static final RatingCurve CURVE_A = new RatingCurve()
 		.setBaseRatingTable(new ArrayList<>(Arrays.asList(new RatingPoint().setInputValue(1.0).setOutputValue(1.0))))
 		.setEquation("equation-a")
 		.setId("id-a")
@@ -105,7 +105,7 @@ public class RatingCurveListServiceTest {
 		.setRemarks("remarks-a")
 		.setShifts(new ArrayList<>(Arrays.asList(shiftA1, shiftA2, shiftA3, shiftA4)))
 		.setType(RatingCurveType.LinearTable);
-	RatingCurve curveB = new RatingCurve()
+	public static final RatingCurve CURVE_B = new RatingCurve()
 		.setBaseRatingTable(new ArrayList<>(Arrays.asList(new RatingPoint().setInputValue(1.0).setOutputValue(1.0))))
 		.setEquation("equation-a")
 		.setId("id-a")
@@ -116,7 +116,7 @@ public class RatingCurveListServiceTest {
 		.setRemarks("remarks-a")
 		.setShifts(new ArrayList<>(Arrays.asList(shiftB1, shiftB2)))
 		.setType(RatingCurveType.LinearTable);
-	RatingCurve curveC = new RatingCurve()
+	public static final RatingCurve CURVE_C = new RatingCurve()
 		.setBaseRatingTable(new ArrayList<>(Arrays.asList(new RatingPoint().setInputValue(1.0).setOutputValue(1.0))))
 		.setEquation("equation-a")
 		.setId("id-a")
@@ -127,7 +127,7 @@ public class RatingCurveListServiceTest {
 		.setRemarks("remarks-a")
 		.setShifts(new ArrayList<>(Arrays.asList(shiftC1)))
 		.setType(RatingCurveType.LinearTable);
-	RatingCurve curveD = new RatingCurve()
+	public static final RatingCurve CURVE_D = new RatingCurve()
 		.setBaseRatingTable(new ArrayList<>(Arrays.asList(new RatingPoint().setInputValue(1.0).setOutputValue(1.0))))
 		.setEquation("equation-a")
 		.setId("id-a")
@@ -139,19 +139,21 @@ public class RatingCurveListServiceTest {
 		.setShifts(new ArrayList<>())
 		.setType(RatingCurveType.LinearTable);
 
+	public static final List<RatingCurve> CURVE_LIST = new ArrayList<RatingCurve>(Arrays.asList(CURVE_A, CURVE_B, CURVE_C, CURVE_D));
+
     @Before
 	@SuppressWarnings("unchecked")
 	public void setup() {
 		service = new RatingCurveListService(aquariusService);
 		given(aquariusService.executePublishApiRequest(any(IReturn.class))).willReturn(new RatingCurveListServiceResponse()
-				.setRatingCurves(new ArrayList<RatingCurve>(Arrays.asList(curveA, curveB, curveC, curveD))));
+				.setRatingCurves(CURVE_LIST));
 	}
 
 	@Test
 	public void getRawResponseTest() {
 		List<RatingCurve> results = service.getRawResponse("rating-model", null, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-02-01T00:00:00Z")).getRatingCurves();
 		assertEquals(results.size(), 4);
-		assertThat(results, containsInAnyOrder(curveA, curveB, curveC, curveD));
+		assertThat(results, containsInAnyOrder(CURVE_A, CURVE_B, CURVE_C, CURVE_D));
 	}
 
 	@Test
@@ -159,40 +161,45 @@ public class RatingCurveListServiceTest {
 		List<RatingCurve> raw = service.getRawResponse("rating-model", null, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-02-01T00:00:00Z")).getRatingCurves();
 		List<RatingCurve> filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-13T00:00:00Z"));
 		assertEquals(filtered.size(), 4);
-		assertThat(filtered, containsInAnyOrder(curveA, curveB, curveC, curveD));
+		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B, CURVE_C, CURVE_D));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-12T00:00:00Z"));
 		assertEquals(filtered.size(), 3);
-		assertThat(filtered, containsInAnyOrder(curveA, curveB, curveC));
+		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B, CURVE_C));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-11T00:00:00Z"));
 		assertEquals(filtered.size(), 3);
-		assertThat(filtered, containsInAnyOrder(curveA, curveB, curveC));
+		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B, CURVE_C));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-07T00:00:00Z"));
 		assertEquals(filtered.size(), 2);
-		assertThat(filtered, containsInAnyOrder(curveA, curveB));
+		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-05T00:00:00Z"));
 		assertEquals(filtered.size(), 2);
-		assertThat(filtered, containsInAnyOrder(curveA, curveB));
+		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-04T00:00:00Z"));
 		assertEquals(filtered.size(), 2);
-		assertThat(filtered, containsInAnyOrder(curveA, curveB));
+		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-03T00:00:00Z"));
 		assertEquals(filtered.size(), 2);
-		assertThat(filtered, containsInAnyOrder(curveA, curveB));
+		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-02T00:00:00Z"));
 		assertEquals(filtered.size(), 1);
-		assertThat(filtered, containsInAnyOrder(curveA));
+		assertThat(filtered, containsInAnyOrder(CURVE_A));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-04T00:00:00Z"), Instant.parse("2017-01-06T00:00:00Z"));
 		assertEquals(filtered.size(), 2);
-		assertThat(filtered, containsInAnyOrder(curveA, curveB));
+		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-05T00:00:00Z"), Instant.parse("2017-01-06T00:00:00Z"));
 		assertEquals(filtered.size(), 1);
-		assertThat(filtered, containsInAnyOrder(curveB));
+		assertThat(filtered, containsInAnyOrder(CURVE_B));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-07T00:00:00Z"), Instant.parse("2017-01-13T00:00:00Z"));
 		assertEquals(filtered.size(), 3);
-		assertThat(filtered, containsInAnyOrder(curveA, curveC, curveD));
+		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_C, CURVE_D));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-12T00:00:00Z"), Instant.parse("2017-01-13T00:00:00Z"));
 		assertEquals(filtered.size(), 1);
-		assertThat(filtered, containsInAnyOrder(curveD));
+		assertThat(filtered, containsInAnyOrder(CURVE_D));
+	}
+
+	@Test
+	public void getAqcuFilteredRatingCurvesEmptyTest() {
+		assertEquals(service.getAqcuFilteredRatingCurves(new ArrayList<>(), Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-02-01T00:00:00Z")), new ArrayList<>());
 	}
 
 	@Test
@@ -233,6 +240,11 @@ public class RatingCurveListServiceTest {
 		assertThat(filtered, containsInAnyOrder(shiftA3, shiftA4, shiftC1));
 		filtered = service.getAqcuFilteredRatingShifts(raw, Instant.parse("2017-01-12T00:00:00Z"), Instant.parse("2017-01-13T00:00:00Z"));
 		assertEquals(filtered.size(), 0);
+	}
+
+	@Test
+	public void getAqcuFilteredRatingShiftsEmptyTest() {
+		assertEquals(service.getAqcuFilteredRatingShifts(new ArrayList<>(), Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-02-01T00:00:00Z")), new ArrayList<>());
 	}
 
 	@Test

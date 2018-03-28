@@ -70,7 +70,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		this.timeSeriesDescriptionListService = timeSeriesDescriptionListService;
 	}
 
-	public TimeSeriesSummaryReport buildReport(TimeSeriesSummaryRequestParameters requestParameters, String requestingUser) throws Exception {
+	public TimeSeriesSummaryReport buildReport(TimeSeriesSummaryRequestParameters requestParameters, String requestingUser) {
 		TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
 
 		//Create the Report
@@ -87,12 +87,12 @@ public class TimeSeriesSummaryReportBuilderService {
 		return report;
 	}
 
-	private TimeSeriesSummaryReport addBasicReportMetadata(TimeSeriesSummaryReport report, TimeSeriesSummaryRequestParameters requestParameters, String requestingUser) {
+	protected TimeSeriesSummaryReport addBasicReportMetadata(TimeSeriesSummaryReport report, TimeSeriesSummaryRequestParameters requestParameters, String requestingUser) {
 		report.setReportMetadata(new TimeSeriesSummaryReportMetadata(REPORT_TYPE, REPORT_TITLE, requestParameters, requestingUser, null, null, null, null, null, null));
 		return report;
 	}
 
-	private TimeSeriesSummaryReport addTimeSeriesData(TimeSeriesSummaryReport report, String primaryTimeseriesIdentifier, Instant startTime, Instant endTime, TimeSeriesSummaryRequestParameters requestParameters) {
+	protected TimeSeriesSummaryReport addTimeSeriesData(TimeSeriesSummaryReport report, String primaryTimeseriesIdentifier, Instant startTime, Instant endTime, TimeSeriesSummaryRequestParameters requestParameters) {
 		//Downchain TS Unique Ids
 		List<Processor> downchainProcessorList = downchainProcessorListService.getRawResponse(primaryTimeseriesIdentifier, startTime, endTime).getProcessors();
 		List<String> downchainUniqueIdList = downchainProcessorListService.getOutputTimeSeriesUniqueIdList(downchainProcessorList);
@@ -124,6 +124,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		//Add to Report
 		report.getReportMetadata().setStationId(primaryDescription.getLocationIdentifier());
 		report.getReportMetadata().setTimezone(primaryDescription.getUtcOffset());
+		report.getReportMetadata().setPrimaryParameter(primaryDescription.getParameter());
 		report.setPrimaryTsMetadata(primaryDescription);
 		report.setPrimaryTsData(new TimeSeriesSummaryCorrectedData(dataResponse, upchainProcessorList, gapList));
 		report.setUpchainTs(createTimeSeriesSummaryRelatedSeriesList(upchainDescriptions, upchainUrls));
@@ -132,7 +133,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		return report;
 	}
 
-	private TimeSeriesSummaryReport addCorrectionsData(TimeSeriesSummaryReport report, String primaryTimeSeriesIdentifier, Instant startTime, Instant endTime, String stationId, TimeSeriesSummaryRequestParameters requestParameters) {
+	protected TimeSeriesSummaryReport addCorrectionsData(TimeSeriesSummaryReport report, String primaryTimeSeriesIdentifier, Instant startTime, Instant endTime, String stationId, TimeSeriesSummaryRequestParameters requestParameters) {
 		String corrUrl = reportUrlBuilderService.buildAqcuReportUrl("correctionsataglance", stationId, requestParameters, null);
 		List<ExtendedCorrection> correctionList = correctionListService.getExtendedCorrectionList(primaryTimeSeriesIdentifier, startTime, endTime, requestParameters.getExcludedCorrections());
 
@@ -141,46 +142,44 @@ public class TimeSeriesSummaryReportBuilderService {
 		return report;
 	}
 
-	private TimeSeriesSummaryReport addLocationData(TimeSeriesSummaryReport report, String stationId) {
+	protected TimeSeriesSummaryReport addLocationData(TimeSeriesSummaryReport report, String stationId) {
 		report.getReportMetadata().setStationName(locationDescriptionService.getByLocationIdentifier(stationId).getName());
 				
 		return report;
 	}
 
-	private TimeSeriesSummaryReport addRatingInformation(TimeSeriesSummaryReport report, String primaryRatingModelIdentifier, Instant startTime, Instant endTime) {
+	protected TimeSeriesSummaryReport addRatingInformation(TimeSeriesSummaryReport report, String primaryRatingModelIdentifier, Instant startTime, Instant endTime) {
 		List<RatingCurve> ratingCurveList = null;
 		List<RatingShift> ratingShiftList = null;
-		if(!report.getPrimaryTsData().getProcessors().isEmpty()) {
-			List<RatingCurve> rawCurveList = ratingCurveListService.getRawResponse(primaryRatingModelIdentifier, null, null, null).getRatingCurves();
-			ratingCurveList = ratingCurveListService.getAqcuFilteredRatingCurves(rawCurveList, startTime, endTime);
-			ratingShiftList = ratingCurveListService.getAqcuFilteredRatingShifts(ratingCurveList, startTime, endTime);
-			report.setRatingCurves(ratingCurveList);
+		List<RatingCurve> rawCurveList = ratingCurveListService.getRawResponse(primaryRatingModelIdentifier, null, null, null).getRatingCurves();
+		ratingCurveList = ratingCurveListService.getAqcuFilteredRatingCurves(rawCurveList, startTime, endTime);
+		ratingShiftList = ratingCurveListService.getAqcuFilteredRatingShifts(ratingCurveList, startTime, endTime);
+		report.setRatingCurves(ratingCurveList);
 
-			//Create Rating Shifts
-			List<TimeSeriesSummaryRatingShift> ratingShifts = new ArrayList<>();
-			for(RatingShift shift : ratingShiftList) {
-				for(RatingCurve curve : ratingCurveList) {
-					if(curve.getShifts().contains(shift)) {
-						TimeSeriesSummaryRatingShift newShift = new TimeSeriesSummaryRatingShift(shift, curve.getId());
-						ratingShifts.add(newShift);
-						break;
-					}
+		//Create Rating Shifts
+		List<TimeSeriesSummaryRatingShift> ratingShifts = new ArrayList<>();
+		for(RatingShift shift : ratingShiftList) {
+			for(RatingCurve curve : ratingCurveList) {
+				if(curve.getShifts().contains(shift)) {
+					TimeSeriesSummaryRatingShift newShift = new TimeSeriesSummaryRatingShift(shift, curve.getId());
+					ratingShifts.add(newShift);
+					break;
 				}
 			}
-
-			report.setRatingShifts(ratingShifts);
 		}
+
+		report.setRatingShifts(ratingShifts);
 
 		return report;
 	}
 
-	private TimeSeriesSummaryReport addLookupData(TimeSeriesSummaryReport report, List<Grade> gradeList, List<Qualifier> qualifierList) {
+	protected TimeSeriesSummaryReport addLookupData(TimeSeriesSummaryReport report, List<Grade> gradeList, List<Qualifier> qualifierList) {
 		report.getReportMetadata().setGradeMetadata(gradeLookupService.getByGradeList(gradeList));
 		report.getReportMetadata().setQualifierMetadata(qualifierLookupService.getByQualifierList(qualifierList));
 		return report;
 	}
 
-	private List<TimeSeriesSummaryRelatedSeries> createTimeSeriesSummaryRelatedSeriesList(List<TimeSeriesDescription> descriptions, Map<String,String> reportUrls) {
+	protected List<TimeSeriesSummaryRelatedSeries> createTimeSeriesSummaryRelatedSeriesList(List<TimeSeriesDescription> descriptions, Map<String,String> reportUrls) {
 		List<TimeSeriesSummaryRelatedSeries> series = new ArrayList<>();
 
 		if(!descriptions.isEmpty()) {

@@ -30,8 +30,7 @@ public class UpchainProcessorListServiceTest {
 	@MockBean
 	private AquariusRetrievalService aquariusService;
     private UpchainProcessorListService service;
-
-    Processor procA = new Processor()
+    public static final Processor PROC_A = new Processor()
         .setDescription("desc-a")
         .setInputRatingModelIdentifier("rating-a")
         .setInputTimeSeriesUniqueIds(new ArrayList<String>(Arrays.asList("ts-in-a1", "ts-in-a2")))
@@ -39,7 +38,7 @@ public class UpchainProcessorListServiceTest {
         .setProcessorPeriod(new TimeRange().setStartTime(Instant.parse("2017-01-01T00:00:00Z")).setEndTime(Instant.parse("2017-02-01T00:00:00Z")))
         .setProcessorType("type-a")
         .setSettings(new HashMap<>());
-    Processor procB = new Processor()
+    public static final Processor PROC_B = new Processor()
         .setDescription("desc-b")
         .setInputRatingModelIdentifier("rating-b")
         .setInputTimeSeriesUniqueIds(new ArrayList<String>(Arrays.asList("ts-in-b1", "ts-in-b2", "ts-in-a1")))
@@ -47,26 +46,25 @@ public class UpchainProcessorListServiceTest {
         .setProcessorPeriod(new TimeRange().setStartTime(Instant.parse("2017-01-01T00:00:00Z")).setEndTime(Instant.parse("2017-02-01T00:00:00Z")))
         .setProcessorType("type-b")
         .setSettings(new HashMap<>());
-
+    public static final ArrayList<Processor> PROCESSOR_LIST = new ArrayList<>(Arrays.asList(PROC_A, PROC_B));
 
     @Before
 	@SuppressWarnings("unchecked")
 	public void setup() {
 		service = new UpchainProcessorListService(aquariusService);
 		given(aquariusService.executePublishApiRequest(any(IReturn.class))).willReturn(new ProcessorListServiceResponse()
-				.setProcessors(new ArrayList<Processor>(Arrays.asList(procA, procB))));
+				.setProcessors(PROCESSOR_LIST));
     }
     
     @Test
     public void getRawResponseTest() {
         List<Processor> actual = service.getRawResponse("ts-identifier", Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-02-01T00:00:00Z")).getProcessors();
-		assertThat(actual, containsInAnyOrder(procA, procB));
+		assertThat(actual, containsInAnyOrder(PROC_A, PROC_B));
     }
 
     @Test
     public void getInputTimeseriesUniqueIdListTest() {
-        List<Processor> procList = Arrays.asList(procA, procB);
-		List<String> inputTsIdList = service.getInputTimeSeriesUniqueIdList(procList);
+		List<String> inputTsIdList = service.getInputTimeSeriesUniqueIdList(PROCESSOR_LIST);
 		assertEquals(inputTsIdList.size(), 4);
         assertThat(inputTsIdList, containsInAnyOrder("ts-in-a1", "ts-in-a2", "ts-in-b1", "ts-in-b2"));
     }

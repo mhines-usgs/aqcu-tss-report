@@ -39,7 +39,7 @@ public class TimeSeriesDescriptionListServiceTest {
 	private AquariusRetrievalService aquariusService;
 	private TimeSeriesDescriptionListService service;
 
-	TimeSeriesThresholdPeriod p1 = new TimeSeriesThresholdPeriod()
+	private static final TimeSeriesThresholdPeriod p1 = new TimeSeriesThresholdPeriod()
 		.setStartTime(Instant.parse("2017-01-01T00:00:00Z"))
 		.setEndTime(Instant.parse("2017-02-01T00:00:00Z"))
 		.setAppliedTime(Instant.parse("2017-02-01T00:00:00Z"))
@@ -48,13 +48,13 @@ public class TimeSeriesDescriptionListServiceTest {
 		.setSecondaryReferenceValue(2.0)
 		.setSuppressData(false);
 
-	TimeSeriesThreshold threshold1 = new TimeSeriesThreshold()
+	private static final TimeSeriesThreshold threshold1 = new TimeSeriesThreshold()
 		.setDescription("desc-1")
 		.setDisplayColor("color1")
 		.setName("name-1")
 		.setPeriods(new ArrayList<TimeSeriesThresholdPeriod>(Arrays.asList(p1)));
 	
-	TimeSeriesDescription d1 = new TimeSeriesDescription()
+	public static final TimeSeriesDescription DESC_1 = new TimeSeriesDescription()
 		.setComment("comment-1")
 		.setComputationIdentifier("comp-id-1")
 		.setComputationPeriodIdentifier("period-id-1")
@@ -75,8 +75,7 @@ public class TimeSeriesDescriptionListServiceTest {
 		.setUnit("unit-1")
 		.setUtcOffset(1.0)
 		.setUtcOffsetIsoDuration(Duration.ofHours(1));
-
-	TimeSeriesDescription d2 = new TimeSeriesDescription()
+	public static final TimeSeriesDescription DESC_2 = new TimeSeriesDescription()
 		.setComment("comment-2")
 		.setComputationIdentifier("comp-id-2")
 		.setComputationPeriodIdentifier("period-id-2")
@@ -97,27 +96,28 @@ public class TimeSeriesDescriptionListServiceTest {
 		.setUnit("unit-2")
 		.setUtcOffset(2.0)
 		.setUtcOffsetIsoDuration(Duration.ofHours(2));
+	public static final ArrayList<TimeSeriesDescription> DESC_LIST = new ArrayList<>(Arrays.asList(DESC_1, DESC_2));
 
     @Before
 	@SuppressWarnings("unchecked")
 	public void setup() {
 		service = new TimeSeriesDescriptionListService(aquariusService);
 		given(aquariusService.executePublishApiRequest(any(IReturn.class))).willReturn(new TimeSeriesDescriptionListByUniqueIdServiceResponse()
-				.setTimeSeriesDescriptions(new ArrayList<TimeSeriesDescription>(Arrays.asList(d1, d2))));
+				.setTimeSeriesDescriptions(new ArrayList<TimeSeriesDescription>(Arrays.asList(DESC_1, DESC_2))));
 	}
 
 	@Test
 	public void getRawResponseTest() {
 		List<TimeSeriesDescription> results = service.getRawResponse(Arrays.asList("ts-uid1", "ts-uid2")).getTimeSeriesDescriptions();
 		assertEquals(results.size(), 2);
-		assertThat(results, containsInAnyOrder(d1, d2));
+		assertThat(results, containsInAnyOrder(DESC_1, DESC_2));
 	}
 
 	@Test
 	public void getTimeSeriesDescriptionListTest() {
 		List<TimeSeriesDescription> results = service.getTimeSeriesDescriptionList(new HashSet<>(Arrays.asList("ts-uid1", "ts-uid2")));
 		assertEquals(results.size(), 2);
-		assertThat(results, containsInAnyOrder(d1, d2));
+		assertThat(results, containsInAnyOrder(DESC_1, DESC_2));
 	}
 
 	@Test
@@ -125,13 +125,12 @@ public class TimeSeriesDescriptionListServiceTest {
 		Map<String,List<String>> idMap = new HashMap<>();
 		idMap.put("group-1", Arrays.asList("uid-1"));
 		idMap.put("group-2", Arrays.asList("uid-2"));
-		//idMap.put("group-3", Arrays.asList("uid-3"));
 		Map<String,List<TimeSeriesDescription>> results = service.getBatchTimeSeriesDescriptionLists(idMap);
 		assertEquals(results.size(), 2);
 		assertEquals(results.get("group-1").size(), 1);
 		assertEquals(results.get("group-2").size(), 1);
-		assertThat(results.get("group-1"), containsInAnyOrder(d1));
-		assertThat(results.get("group-2"), containsInAnyOrder(d2));
+		assertThat(results.get("group-1"), containsInAnyOrder(DESC_1));
+		assertThat(results.get("group-2"), containsInAnyOrder(DESC_2));
 	}
 
 	@Test
@@ -142,7 +141,7 @@ public class TimeSeriesDescriptionListServiceTest {
 		idMap.put("group-3", Arrays.asList("uid-3"));
 
 		try {
-			Map<String,List<TimeSeriesDescription>> results = service.getBatchTimeSeriesDescriptionLists(idMap);
+			service.getBatchTimeSeriesDescriptionLists(idMap);
 			fail("Expected AquariusProcessingException but got none.");
 		} catch (AquariusProcessingException e) {
 			//Success
