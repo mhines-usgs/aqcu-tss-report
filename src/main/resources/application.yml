@@ -1,5 +1,5 @@
 server:
-  port: 8443
+  port: ${serverPort:8443}
   use-forward-headers: true
   ssl:
     key-store: ${keystoreLocation}
@@ -18,7 +18,7 @@ management:
 
 javaToR:
   ribbon:
-    listOfServers: ${javaToRServers}
+    listOfServers: ${javaToRServerList}
     IsSecure: ${javaToRIsSecure:true}
 
 eureka:
