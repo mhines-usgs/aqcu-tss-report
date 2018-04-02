@@ -71,33 +71,32 @@ public class TimeSeriesSummaryReportBuilderService {
 	}
 
 	public TimeSeriesSummaryReport buildReport(TimeSeriesSummaryRequestParameters requestParameters, String requestingUser) {
-		TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
-
 		//Create the Report
-		report = addBasicReportMetadata(report, requestParameters, requestingUser);
-		report = addTimeSeriesData(report, requestParameters.getPrimaryTimeseriesIdentifier(), requestParameters.getStartInstant(), requestParameters.getEndInstant(), requestParameters);
-		report = addCorrectionsData(report, requestParameters.getPrimaryTimeseriesIdentifier(), requestParameters.getStartInstant(), requestParameters.getEndInstant(), report.getReportMetadata().getStationId(), requestParameters);
-		report = addLocationData(report, report.getReportMetadata().getStationId());
-		report = addLookupData(report, report.getPrimaryTsData().getGrades(), report.getPrimaryTsData().getQualifiers());
+		TimeSeriesSummaryReport report = addTimeSeriesData(requestParameters);
+		report.setCorrections(addCorrectionsData(requestParameters, report.getPrimaryTsMetadata().getLocationIdentifier()));
+		report.setReportMetadata(addReportMetadata(requestParameters,
+			report.getPrimaryTsMetadata().getLocationIdentifier(), 
+			report.getPrimaryTsMetadata().getParameter(),
+			report.getPrimaryTsMetadata().getUtcOffset(),
+			report.getPrimaryTsData().getGrades(), 
+			report.getPrimaryTsData().getQualifiers()
+		));
 
+		//If we have a valid rating model id then add rating information
 		if(!report.getPrimaryTsData().getProcessors().isEmpty() && report.getPrimaryTsData().getProcessors().get(0).getInputRatingModelIdentifier() != null) {
-			report = addRatingInformation(report, report.getPrimaryTsData().getProcessors().get(0).getInputRatingModelIdentifier(), requestParameters.getStartInstant(), requestParameters.getEndInstant());
+			report.setRatingCurves(addRatingCurves(requestParameters, report.getPrimaryTsData().getProcessors().get(0).getInputRatingModelIdentifier()));
+			report.setRatingShifts(addRatingShifts(requestParameters, report.getRatingCurves()));
 		}
 		
 		return report;
 	}
 
-	protected TimeSeriesSummaryReport addBasicReportMetadata(TimeSeriesSummaryReport report, TimeSeriesSummaryRequestParameters requestParameters, String requestingUser) {
-		TimeSeriesSummaryReportMetadata metadata = new TimeSeriesSummaryReportMetadata();
-		metadata.setReportType(REPORT_TYPE);
-		metadata.setTitle(REPORT_TITLE);
-		metadata.setRequestParameters(requestParameters);
-		metadata.setRequestingUser(requestingUser);
-		report.setReportMetadata(metadata);
-		return report;
-	}
+	protected TimeSeriesSummaryReport addTimeSeriesData(TimeSeriesSummaryRequestParameters requestParameters) {
+		TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
+		String primaryTimeseriesIdentifier = requestParameters.getPrimaryTimeseriesIdentifier();
+		Instant startTime = requestParameters.getStartInstant();
+		Instant endTime = requestParameters.getEndInstant();
 
-	protected TimeSeriesSummaryReport addTimeSeriesData(TimeSeriesSummaryReport report, String primaryTimeseriesIdentifier, Instant startTime, Instant endTime, TimeSeriesSummaryRequestParameters requestParameters) {
 		//Downchain TS Unique Ids
 		List<Processor> downchainProcessorList = downchainProcessorListService.getRawResponse(primaryTimeseriesIdentifier, startTime, endTime).getProcessors();
 		List<String> downchainUniqueIdList = downchainProcessorListService.getOutputTimeSeriesUniqueIdList(downchainProcessorList);
@@ -127,9 +126,6 @@ public class TimeSeriesSummaryReportBuilderService {
 		Map<String,String> downchainUrls = reportUrlBuilderService.buildAqcuReportUrlMapByUnqiueIdList("timeseriessummary", primaryDescription.getLocationIdentifier(), requestParameters, downchainUniqueIdList);
 
 		//Add to Report
-		report.getReportMetadata().setStationId(primaryDescription.getLocationIdentifier());
-		report.getReportMetadata().setTimezone(primaryDescription.getUtcOffset());
-		report.getReportMetadata().setPrimaryParameter(primaryDescription.getParameter());
 		report.setPrimaryTsMetadata(primaryDescription);
 		report.setPrimaryTsData(new TimeSeriesSummaryCorrectedData(dataResponse, upchainProcessorList, gapList));
 		report.setUpchainTs(createTimeSeriesSummaryRelatedSeriesList(upchainDescriptions, upchainUrls));
@@ -138,33 +134,51 @@ public class TimeSeriesSummaryReportBuilderService {
 		return report;
 	}
 
-	protected TimeSeriesSummaryReport addCorrectionsData(TimeSeriesSummaryReport report, String primaryTimeSeriesIdentifier, Instant startTime, Instant endTime, String stationId, TimeSeriesSummaryRequestParameters requestParameters) {
+	protected TimeSeriesSummaryCorrections addCorrectionsData(TimeSeriesSummaryRequestParameters requestParameters, String stationId) {
 		String corrUrl = reportUrlBuilderService.buildAqcuReportUrl("correctionsataglance", stationId, requestParameters, null);
-		List<ExtendedCorrection> correctionList = correctionListService.getExtendedCorrectionList(primaryTimeSeriesIdentifier, startTime, endTime, requestParameters.getExcludedCorrections());
+		List<ExtendedCorrection> correctionList = correctionListService.getExtendedCorrectionList(
+			requestParameters.getPrimaryTimeseriesIdentifier(), 
+			requestParameters.getStartInstant(), 
+			requestParameters.getEndInstant(), 
+			requestParameters.getExcludedCorrections());
 
-		report.setCorrections(new TimeSeriesSummaryCorrections(correctionList, corrUrl));
-
-		return report;
+		return new TimeSeriesSummaryCorrections(correctionList, corrUrl);
 	}
 
-	protected TimeSeriesSummaryReport addLocationData(TimeSeriesSummaryReport report, String stationId) {
-		report.getReportMetadata().setStationName(locationDescriptionService.getByLocationIdentifier(stationId).getName());
-				
-		return report;
+	protected TimeSeriesSummaryReportMetadata addReportMetadata(TimeSeriesSummaryRequestParameters requestParameters, String stationId, String primaryParameter, Double utcOffset, List<Grade> gradeList, List<Qualifier> qualifierList) {
+		TimeSeriesSummaryReportMetadata metadata = new TimeSeriesSummaryReportMetadata();
+		metadata.setTitle(REPORT_TITLE);
+		metadata.setRequestParameters(requestParameters);
+		metadata.setStationId(stationId);
+		metadata.setStationName(locationDescriptionService.getByLocationIdentifier(stationId).getName());
+		metadata.setTimezone(utcOffset);
+		metadata.setPrimaryParameter(primaryParameter);
+
+		if(gradeList != null && !gradeList.isEmpty()) {
+			metadata.setGradeMetadata(gradeLookupService.getByGradeList(gradeList));
+		}
+		
+		if(qualifierList != null && !qualifierList.isEmpty()) {
+			metadata.setQualifierMetadata(qualifierLookupService.getByQualifierList(qualifierList));
+		}
+		
+		return metadata;
 	}
 
-	protected TimeSeriesSummaryReport addRatingInformation(TimeSeriesSummaryReport report, String primaryRatingModelIdentifier, Instant startTime, Instant endTime) {
-		List<RatingCurve> ratingCurveList = null;
-		List<RatingShift> ratingShiftList = null;
+	protected List<RatingCurve> addRatingCurves(TimeSeriesSummaryRequestParameters requestParameters, String primaryRatingModelIdentifier) {
 		List<RatingCurve> rawCurveList = ratingCurveListService.getRawResponse(primaryRatingModelIdentifier, null, null, null).getRatingCurves();
-		ratingCurveList = ratingCurveListService.getAqcuFilteredRatingCurves(rawCurveList, startTime, endTime);
-		ratingShiftList = ratingCurveListService.getAqcuFilteredRatingShifts(ratingCurveList, startTime, endTime);
-		report.setRatingCurves(ratingCurveList);
+		List<RatingCurve> ratingCurveList = ratingCurveListService.getAqcuFilteredRatingCurves(rawCurveList, requestParameters.getStartInstant(), requestParameters.getEndInstant());
+
+		return ratingCurveList;
+	}
+
+	protected List<TimeSeriesSummaryRatingShift> addRatingShifts(TimeSeriesSummaryRequestParameters requestParameters, List<RatingCurve> ratingCurves) {
+		List<RatingShift> ratingShiftList =  ratingCurveListService.getAqcuFilteredRatingShifts(ratingCurves, requestParameters.getStartInstant(), requestParameters.getEndInstant());
 
 		//Create Rating Shifts
 		List<TimeSeriesSummaryRatingShift> ratingShifts = new ArrayList<>();
 		for(RatingShift shift : ratingShiftList) {
-			for(RatingCurve curve : ratingCurveList) {
+			for(RatingCurve curve : ratingCurves) {
 				if(curve.getShifts().contains(shift)) {
 					TimeSeriesSummaryRatingShift newShift = new TimeSeriesSummaryRatingShift(shift, curve.getId());
 					ratingShifts.add(newShift);
@@ -173,15 +187,7 @@ public class TimeSeriesSummaryReportBuilderService {
 			}
 		}
 
-		report.setRatingShifts(ratingShifts);
-
-		return report;
-	}
-
-	protected TimeSeriesSummaryReport addLookupData(TimeSeriesSummaryReport report, List<Grade> gradeList, List<Qualifier> qualifierList) {
-		report.getReportMetadata().setGradeMetadata(gradeLookupService.getByGradeList(gradeList));
-		report.getReportMetadata().setQualifierMetadata(qualifierLookupService.getByQualifierList(qualifierList));
-		return report;
+		return ratingShifts;
 	}
 
 	protected List<TimeSeriesSummaryRelatedSeries> createTimeSeriesSummaryRelatedSeriesList(List<TimeSeriesDescription> descriptions, Map<String,String> reportUrls) {

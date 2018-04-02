@@ -25,6 +25,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import gov.usgs.aqcu.model.ExtendedCorrection;
+import gov.usgs.aqcu.model.TimeSeriesSummaryCorrections;
 import gov.usgs.aqcu.model.TimeSeriesSummaryRatingShift;
 import gov.usgs.aqcu.model.TimeSeriesSummaryRelatedSeries;
 import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
@@ -108,7 +109,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 	List<RatingCurve> ratingCurves;
 	List<RatingShift> rawShifts;
 	List<TimeSeriesSummaryRatingShift> ratingShifts;
-	LocationDescription primaryLoc = new LocationDescription().setIdentifier(primaryDesc.getUniqueId()).setName("loc-name");
+	LocationDescription primaryLoc = new LocationDescription().setIdentifier(primaryDesc.getLocationIdentifier()).setName("loc-name");
 
 	@Before
 	public void setup() {
@@ -126,8 +127,6 @@ public class TimeSeriesSummaryReportBuilderTest {
 		//Metadata
 		metadata = new TimeSeriesSummaryReportMetadata();
 		metadata.setPrimaryParameter(primaryDesc.getParameter());
-		metadata.setReportType(TimeSeriesSummaryReportBuilderService.REPORT_TYPE);
-		metadata.setRequestingUser(REQUESTING_USER);
 		metadata.setRequestParameters(requestParams);
 		metadata.setStationId(primaryDesc.getLocationIdentifier());
 		metadata.setStationName(primaryLoc.getName());
@@ -194,9 +193,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		assertTrue(report != null);
 		assertTrue(report.getReportMetadata() != null);
 		assertEquals(report.getReportMetadata().getPrimaryTimeSeriesIdentifier(), metadata.getPrimaryTimeSeriesIdentifier());
-		assertEquals(report.getReportMetadata().getReportType(), metadata.getReportType());
 		assertEquals(report.getReportMetadata().getRequestParameters(), metadata.getRequestParameters());
-		assertEquals(report.getReportMetadata().getRequestingUser(), metadata.getRequestingUser());
 		assertEquals(report.getReportMetadata().getStartDate(), metadata.getStartDate());
 		assertEquals(report.getReportMetadata().getEndDate(), metadata.getEndDate());		
 		assertEquals(report.getCorrections().getCorrUrl(), reportUrlBuilderService.buildAqcuReportUrl("correctionsataglance", metadata.getStationId(), requestParams, null));
@@ -256,9 +253,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		assertTrue(report != null);
 		assertTrue(report.getReportMetadata() != null);
 		assertEquals(report.getReportMetadata().getPrimaryTimeSeriesIdentifier(), metadata.getPrimaryTimeSeriesIdentifier());
-		assertEquals(report.getReportMetadata().getReportType(), metadata.getReportType());
 		assertEquals(report.getReportMetadata().getRequestParameters(), metadata.getRequestParameters());
-		assertEquals(report.getReportMetadata().getRequestingUser(), metadata.getRequestingUser());
 		assertEquals(report.getReportMetadata().getStartDate(), metadata.getStartDate());
 		assertEquals(report.getReportMetadata().getEndDate(), metadata.getEndDate());		
 		assertEquals(report.getCorrections().getCorrUrl(), reportUrlBuilderService.buildAqcuReportUrl("correctionsataglance", metadata.getStationId(), requestParams, null));
@@ -290,19 +285,6 @@ public class TimeSeriesSummaryReportBuilderTest {
 	}
 
 	@Test
-	public void addBasicReportMetadataTest() {
-		TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
-		report = service.addBasicReportMetadata(report, requestParams, REQUESTING_USER);
-		assertTrue(report.getReportMetadata() != null);
-		assertEquals(report.getReportMetadata().getPrimaryTimeSeriesIdentifier(), metadata.getPrimaryTimeSeriesIdentifier());
-		assertEquals(report.getReportMetadata().getReportType(), metadata.getReportType());
-		assertEquals(report.getReportMetadata().getRequestParameters(), metadata.getRequestParameters());
-		assertEquals(report.getReportMetadata().getRequestingUser(), metadata.getRequestingUser());
-		assertEquals(report.getReportMetadata().getStartDate(), metadata.getStartDate());
-		assertEquals(report.getReportMetadata().getEndDate(), metadata.getEndDate());		
-	}
-
-	@Test
 	@SuppressWarnings("unchecked")
 	public void addTimeSeriesDataTest() {
 		given(downchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant()))
@@ -319,7 +301,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 			.willReturn(primaryData);
 		
 		TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
-		report = service.addTimeSeriesData(report, requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant(), requestParams);
+		report = service.addTimeSeriesData(requestParams);
 		assertEquals(report.getPrimaryTsData().getApprovals(), primaryData.getApprovals());
 		assertEquals(report.getPrimaryTsData().getGaps(), new ArrayList<>());
 		assertEquals(report.getPrimaryTsData().getGapTolerances(), primaryData.getGapTolerances());
@@ -332,9 +314,6 @@ public class TimeSeriesSummaryReportBuilderTest {
 		assertEquals(report.getUpchainTs().size(), upDescs.size());
 		assertEquals(report.getDownchainTs().size(), downDescs.size());
 		assertEquals(report.getPrimaryTsMetadata(), primaryDesc);
-		assertEquals(report.getReportMetadata().getStationId(), primaryDesc.getLocationIdentifier());
-		assertEquals(report.getReportMetadata().getPrimaryParameter(), primaryDesc.getParameter());
-		assertEquals(report.getReportMetadata().getTimezone(), metadata.getTimezone());
 	}
 
 	@Test
@@ -342,56 +321,59 @@ public class TimeSeriesSummaryReportBuilderTest {
 		given(corrListService.getExtendedCorrectionList(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant(), requestParams.getExcludedCorrections()))
 			.willReturn(extCorrs);
 
-		TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
-		report = service.addCorrectionsData(report, requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant(), metadata.getStationId(), requestParams);
-		assertEquals(report.getCorrections().getCorrUrl(), reportUrlBuilderService.buildAqcuReportUrl("correctionsataglance", metadata.getStationId(), requestParams, null));
-		assertEquals(report.getCorrections().getPreProcessing().size(), 0);
-		assertEquals(report.getCorrections().getNormal().size(), 1);
-		assertThat(report.getCorrections().getNormal(), containsInAnyOrder(extCorrs.get(0)));
-		assertEquals(report.getCorrections().getPostProcessing().size(), 1);
-		assertThat(report.getCorrections().getPostProcessing(), containsInAnyOrder(extCorrs.get(1)));
+		TimeSeriesSummaryCorrections corrs = service.addCorrectionsData(requestParams, metadata.getStationId());
+		assertEquals(corrs.getCorrUrl(), reportUrlBuilderService.buildAqcuReportUrl("correctionsataglance", metadata.getStationId(), requestParams, null));
+		assertEquals(corrs.getPreProcessing().size(), 0);
+		assertEquals(corrs.getNormal().size(), 1);
+		assertThat(corrs.getNormal(), containsInAnyOrder(extCorrs.get(0)));
+		assertEquals(corrs.getPostProcessing().size(), 1);
+		assertThat(corrs.getPostProcessing(), containsInAnyOrder(extCorrs.get(1)));
 	}
 
 	@Test
-	public void addLocationDataTest() {
-		given(locService.getByLocationIdentifier(metadata.getStationId()))
-			.willReturn(primaryLoc);
-
-		TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
-		report = service.addLocationData(report, metadata.getStationId());
-		assertEquals(report.getReportMetadata().getStationName(), metadata.getStationName());
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void addRatingInformationTest() {
-		given(ratingService.getRawResponse(any(String.class), any(Double.class), any(Instant.class), any(Instant.class)))
-			.willReturn(new RatingCurveListServiceResponse().setRatingCurves(ratingCurves));
-		given(ratingService.getAqcuFilteredRatingCurves(any(ArrayList.class), any(Instant.class), any(Instant.class)))
-			.willReturn(ratingCurves);
-		given(ratingService.getAqcuFilteredRatingShifts(any(ArrayList.class), any(Instant.class), any(Instant.class)))
-			.willReturn(rawShifts);
-
-		TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
-		report = service.addRatingInformation(report,  requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant());
-		assertEquals(report.getRatingCurves(), ratingCurves);
-		assertEquals(report.getRatingShifts().size(), ratingShifts.size());
-		assertEquals(gson.toJson(report.getRatingShifts()), gson.toJson(ratingShifts));
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void addLookupDataTest() {
+	public void addReportMetadataTest() {
 		given(gradeService.getByGradeList(any(ArrayList.class)))
 			.willReturn(new HashMap<>());
 		given(qualService.getByQualifierList(any(ArrayList.class)))
 			.willReturn(new HashMap<>());
+		given(locService.getByLocationIdentifier(metadata.getStationId()))
+			.willReturn(primaryLoc);
 		
-		TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
-		report = service.addLookupData(report, new ArrayList<>(), new ArrayList<>());
+		TimeSeriesSummaryReportMetadata newMetadata = service.addReportMetadata(requestParams, primaryLoc.getIdentifier(), primaryDesc.getParameter(), primaryDesc.getUtcOffset(), new ArrayList<>(), new ArrayList<>());
+		assertTrue(newMetadata != null);
+		assertEquals(newMetadata.getPrimaryTimeSeriesIdentifier(), metadata.getPrimaryTimeSeriesIdentifier());
+		assertEquals(newMetadata.getRequestParameters(), metadata.getRequestParameters());
+		assertEquals(newMetadata.getStartDate(), metadata.getStartDate());
+		assertEquals(newMetadata.getEndDate(), metadata.getEndDate());
+		assertEquals(newMetadata.getStationId(), primaryDesc.getLocationIdentifier());
+		assertEquals(newMetadata.getStationName(), primaryLoc.getName());
+		assertEquals(newMetadata.getPrimaryParameter(), primaryDesc.getParameter());
+		assertEquals(newMetadata.getTimezone(), metadata.getTimezone());
+		assertEquals(newMetadata.getGradeMetadata(), new HashMap<>());
+		assertEquals(newMetadata.getQualifierMetadata(), new HashMap<>());
+	}
 
-		assertEquals(report.getReportMetadata().getGradeMetadata(), new HashMap<>());
-		assertEquals(report.getReportMetadata().getQualifierMetadata(), new HashMap<>());
+	@Test
+	@SuppressWarnings("unchecked")
+	public void addRatingCurvesTest() {
+		given(ratingService.getRawResponse(any(String.class), any(Double.class), any(Instant.class), any(Instant.class)))
+			.willReturn(new RatingCurveListServiceResponse().setRatingCurves(ratingCurves));
+		given(ratingService.getAqcuFilteredRatingCurves(any(ArrayList.class), any(Instant.class), any(Instant.class)))
+			.willReturn(ratingCurves);
+
+		List<RatingCurve> resultCurves = service.addRatingCurves(requestParams, "primaryRatingModel");
+		assertEquals(resultCurves, ratingCurves);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void addRatingShiftsTest() {
+		given(ratingService.getAqcuFilteredRatingShifts(any(ArrayList.class), any(Instant.class), any(Instant.class)))
+			.willReturn(rawShifts);
+
+		List<TimeSeriesSummaryRatingShift> resultShifts = service.addRatingShifts(requestParams, ratingCurves);
+		assertEquals(resultShifts.size(), ratingShifts.size());
+		assertEquals(gson.toJson(resultShifts), gson.toJson(ratingShifts));
 	}
 
 	@Test
