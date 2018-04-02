@@ -7,19 +7,16 @@ public class TimeSeriesSummaryRequestParameters extends RequestParameters {
 
 	private List<String> excludedCorrections;
 
-	public TimeSeriesSummaryRequestParameters() {}
+	public TimeSeriesSummaryRequestParameters() {
+		excludedCorrections = new ArrayList<>();
+	}
 
-	public List<String> getExcludedCorrections() {
-		//Set default value if null
-		if(excludedCorrections == null) {
-			excludedCorrections = new ArrayList<>();
-		}
-		
+	public List<String> getExcludedCorrections() {		
 		return excludedCorrections;
 	}
 
 	public void setExcludedCorrections(List<String> val) {
-		this.excludedCorrections = val;
+		this.excludedCorrections = val != null ? val : new ArrayList<>();
 	}
 
 	@Override 

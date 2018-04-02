@@ -12,7 +12,7 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
@@ -22,7 +22,7 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Rati
 
 import gov.usgs.aqcu.util.AqcuTimeUtils;
 
-@Component
+@Repository
 public class RatingCurveListService {
 	private static final Logger LOG = LoggerFactory.getLogger(RatingCurveListService.class);
 

@@ -125,10 +125,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 
 		//Metadata
 		metadata = new TimeSeriesSummaryReportMetadata();
-		metadata.setStartDate(requestParams.getStartInstant());
-		metadata.setEndDate(requestParams.getEndInstant());
 		metadata.setPrimaryParameter(primaryDesc.getParameter());
-		metadata.setPrimaryTimeSeriesIdentifier(primaryDesc.getUniqueId());
 		metadata.setReportType(TimeSeriesSummaryReportBuilderService.REPORT_TYPE);
 		metadata.setRequestingUser(REQUESTING_USER);
 		metadata.setRequestParameters(requestParams);

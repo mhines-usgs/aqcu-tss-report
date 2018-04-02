@@ -4,11 +4,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.GradeMetadata;
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.QualifierMetadata;
 
-import gov.usgs.aqcu.parameter.RequestParameters;
+import gov.usgs.aqcu.parameter.TimeSeriesSummaryRequestParameters;
 
 public class TimeSeriesSummaryReportMetadata extends ReportMetadata {
+	private TimeSeriesSummaryRequestParameters requestParameters;
+	private String primaryParameter;
+	private String primaryTimeSeriesIdentifier;
 	private Map<String, GradeMetadata> gradeMetadata;
 
 	public TimeSeriesSummaryReportMetadata() {
@@ -16,23 +18,35 @@ public class TimeSeriesSummaryReportMetadata extends ReportMetadata {
 		gradeMetadata = new HashMap<>();
 	}
 
-	public TimeSeriesSummaryReportMetadata(
-		String reportType,
-		String reportTitle,
-		RequestParameters requestParameters,
-		String requestingUser,
-		String primaryParameter,
-		Double utcOffset,
-		String stationName,
-		String stationId,
-		Map<String,QualifierMetadata> qualifierMetadata,
-		Map<String,GradeMetadata> gradeMetadata) {
-		super(reportType, reportTitle, requestParameters, requestingUser, primaryParameter, utcOffset, stationName, stationId, qualifierMetadata);
-		setGradeMetadata(gradeMetadata);
+	public String getPrimaryTimeSeriesIdentifier() {
+		return primaryTimeSeriesIdentifier;
+	}
+	
+	public String getPrimaryParameter() {
+		return primaryParameter;
 	}
 
 	public Map<String, GradeMetadata> getGradeMetadata() {
 		return gradeMetadata;
+	}
+	
+	public TimeSeriesSummaryRequestParameters getRequestParameters() {
+		return requestParameters;
+	}
+	
+	public void setPrimaryTimeSeriesIdentifier(String val) {
+		primaryTimeSeriesIdentifier = val;
+	}
+
+	public void setPrimaryParameter(String val) {
+		primaryParameter = val;
+	}
+	
+	public void setRequestParameters(TimeSeriesSummaryRequestParameters val) {
+		requestParameters = val;
+		setStartDate(val.getStartInstant());
+		setEndDate(val.getEndInstant());
+		setPrimaryTimeSeriesIdentifier(val.getPrimaryTimeseriesIdentifier());
 	}
 
 	public void setGradeMetadata(Map<String, GradeMetadata> val) {

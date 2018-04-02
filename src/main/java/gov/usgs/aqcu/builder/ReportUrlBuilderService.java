@@ -7,13 +7,13 @@ import java.util.HashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import gov.usgs.aqcu.parameter.RequestParameters;
 
 import org.springframework.beans.factory.annotation.Value;
 
-@Component
+@Service
 public class ReportUrlBuilderService {
 	private static final Logger LOG = LoggerFactory.getLogger(ReportUrlBuilderService.class);
 

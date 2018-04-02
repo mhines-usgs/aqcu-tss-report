@@ -10,7 +10,7 @@ import java.util.HashSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescriptionListByUniqueIdServiceResponse;
@@ -18,7 +18,7 @@ import gov.usgs.aqcu.exception.AquariusProcessingException;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescription;
 
 
-@Component
+@Repository
 public class TimeSeriesDescriptionListService {
 	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesDescriptionListService.class);	
 

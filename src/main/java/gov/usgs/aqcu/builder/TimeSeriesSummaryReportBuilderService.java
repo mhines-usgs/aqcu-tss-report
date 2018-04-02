@@ -10,7 +10,7 @@ import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
@@ -25,7 +25,7 @@ import gov.usgs.aqcu.parameter.TimeSeriesSummaryRequestParameters;
 import gov.usgs.aqcu.model.*;
 import gov.usgs.aqcu.retrieval.*;
 
-@Component
+@Service
 public class TimeSeriesSummaryReportBuilderService {
 	public static final String REPORT_TITLE = "Time Series Summary";
 	public static final String REPORT_TYPE = "timeseriessummary";
@@ -88,7 +88,12 @@ public class TimeSeriesSummaryReportBuilderService {
 	}
 
 	protected TimeSeriesSummaryReport addBasicReportMetadata(TimeSeriesSummaryReport report, TimeSeriesSummaryRequestParameters requestParameters, String requestingUser) {
-		report.setReportMetadata(new TimeSeriesSummaryReportMetadata(REPORT_TYPE, REPORT_TITLE, requestParameters, requestingUser, null, null, null, null, null, null));
+		TimeSeriesSummaryReportMetadata metadata = new TimeSeriesSummaryReportMetadata();
+		metadata.setReportType(REPORT_TYPE);
+		metadata.setTitle(REPORT_TITLE);
+		metadata.setRequestParameters(requestParameters);
+		metadata.setRequestingUser(requestingUser);
+		report.setReportMetadata(metadata);
 		return report;
 	}
 

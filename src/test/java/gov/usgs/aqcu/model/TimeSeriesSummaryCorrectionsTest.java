@@ -23,7 +23,7 @@ public class TimeSeriesSummaryCorrectionsTest {
     }
 
     @Test
-	public void constructorTestt() {
+	public void constructorTest() {
         TimeSeriesSummaryCorrections corrections = new TimeSeriesSummaryCorrections(corrList, "corr-url");
         assertEquals(corrections.getCorrUrl(), "corr-url");
 		assertEquals(corrections.getPreProcessing().size(), 0);
