@@ -3,7 +3,7 @@
     <groupId>gov.usgs.aqcu</groupId>
     <artifactId>aqcu-tss-report</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
 
     <properties>
@@ -25,11 +25,11 @@
     </parent>
 
     <repositories>
-        <repository>
+        <!--repository>
             <id>cida-public</id>
             <name>CIDA Public Nexus</name>
             <url>${cida.maven.url}/cida-public-releases/</url>
-        </repository>
+        </repository-->
         <repository>
             <id>aqcu-maven-centralized</id>
             <name>AQCU Maven Centralized (Artifactor)</name>
@@ -106,7 +106,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
