@@ -1,73 +1,73 @@
 package gov.usgs.aqcu;
 
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.when;
-
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Matchers.any;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
-import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.*;
-
-import gov.usgs.aqcu.retrieval.UpchainProcessorListService;
-import gov.usgs.aqcu.retrieval.RatingCurveListService;
-import gov.usgs.aqcu.retrieval.LocationDescriptionListService;
-
-import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 import gov.usgs.aqcu.client.JavaToRClient;
+import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
+import gov.usgs.aqcu.parameter.TimeSeriesSummaryRequestParameters;
 
+@SpringBootTest
+@RunWith(SpringRunner.class)
+@ActiveProfiles("test")
 public class ControllerTest {
-	@Mock
-	private UpchainProcessorListService upchainProcessorListService;
-	@Mock
-	private RatingCurveListService ratingCurveListService;
-	@Mock
-	private LocationDescriptionListService locationDescriptionListService;
-	@Mock
+	@MockBean
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
-	@Mock
+	@MockBean
 	private JavaToRClient client;
+	@Autowired
 	private Gson gson;
 	private Controller controller;
+	byte[] resultBytes;
+	
+	TimeSeriesSummaryReport report;
 
-	/*
 	@Before
-	public void setup() {
-		MockitoAnnotations.initMocks(this);
-		controller = new Controller(timeSeriesMetadataService, upchainProcessorListService, ratingCurveListService, reportBuilderService);
+	public void setup() {		
+		report = new TimeSeriesSummaryReport();
+		controller = new Controller(reportBuilderService, client, gson);
+		resultBytes = gson.toJson(report).getBytes();
 	}
-	
-	@Test(expected = java.lang.NullPointerException.class)
-	public void noParametersTest() {
-		when(timeSeriesMetadataService.get(anyString())).thenReturn(null);
-		when(upchainProcessorListService.get(anyString(), anyObject(), anyObject())).thenReturn(null);
-		TimeSeriesSummaryReport report = controller.getReport(null, null, null, null, null, null);
-	}
-	
+
 	@Test
-	public void noRatingModelTest() {
-		TimeSeriesSummaryReport blankReport = new TimeSeriesSummaryReport();
-		when(timeSeriesMetadataService.get(anyString())).thenReturn(null);
-		when(upchainProcessorListService.get(anyString(), anyObject(), anyObject())).thenReturn(null);
-		when(reportBuilderService.buildTimeSeriesSummaryReport(anyObject(), anyObject(), anyObject(), anyObject(), anyString())).thenReturn(blankReport);
+	public void getReportTest() throws Exception {
+		given(reportBuilderService.buildReport(any(TimeSeriesSummaryRequestParameters.class), any(String.class)))
+			.willReturn(report);
+		given(client.render(any(String.class), any(String.class), any(String.class)))
+			.willReturn(resultBytes);
 		
-		TimeSeriesSummaryReport report = controller.getReport(null, null, null, "2017-01-01T00:00:00Z", "2017-02-01T00:00:00Z", null);
-		
-		verify(timeSeriesMetadataService).get(anyString());
-		verify(upchainProcessorListService).get(anyString(), anyObject(), anyObject());
-		verify(ratingCurveListService, never()).get(anyString(), anyObject(), anyObject(), anyObject());
-		verify(reportBuilderService).buildTimeSeriesSummaryReport(anyObject(), anyObject(), anyObject(), anyObject(), anyString());
-		
-		assertEquals(report, blankReport);
+		ResponseEntity<?> result = controller.getReport(new TimeSeriesSummaryRequestParameters());
+		assertEquals(result.getBody(), resultBytes);
+		assertEquals(result.getStatusCode(), HttpStatus.OK);
 	}
-	*/
+
+	@Test
+	public void getReportRawDataTest() throws Exception {
+		given(reportBuilderService.buildReport(any(TimeSeriesSummaryRequestParameters.class), any(String.class)))
+			.willReturn(report);
+		ResponseEntity<?> result = controller.getReportRawData(new TimeSeriesSummaryRequestParameters());
+		assertEquals(gson.toJson(result.getBody()), gson.toJson(report));
+		assertEquals(result.getStatusCode(), HttpStatus.OK);
+	}
+
+	@Test
+	public void getRequestingUserTest() {
+
+	}
 }

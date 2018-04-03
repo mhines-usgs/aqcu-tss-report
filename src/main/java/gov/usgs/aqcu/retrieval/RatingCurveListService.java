@@ -3,39 +3,50 @@ package gov.usgs.aqcu.retrieval;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.time.Instant;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.PeriodOfApplicability;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShift;
-import gov.usgs.aqcu.exception.AquariusException;
 
 import gov.usgs.aqcu.util.AqcuTimeUtils;
 
-@Component
-public class RatingCurveListService extends AquariusRetrievalService {
+@Repository
+public class RatingCurveListService {
 	private static final Logger LOG = LoggerFactory.getLogger(RatingCurveListService.class);
 
-	public RatingCurveListServiceResponse getRawResponse(String ratingModelIdentifier, Double utcOffset, Instant startDate, Instant endDate) throws AquariusException {
+	private AquariusRetrievalService aquariusRetrievalService;
+
+	@Autowired
+	public RatingCurveListService(
+		AquariusRetrievalService aquariusRetrievalService
+	) {
+		this.aquariusRetrievalService = aquariusRetrievalService;
+	}
+
+	public RatingCurveListServiceResponse getRawResponse(String ratingModelIdentifier, Double utcOffset, Instant startDate, Instant endDate) {
 		RatingCurveListServiceRequest request = new RatingCurveListServiceRequest()
 				.setRatingModelIdentifier(ratingModelIdentifier)
 				.setUtcOffset(utcOffset)
 				.setQueryFrom(startDate)
 				.setQueryTo(endDate);
-		RatingCurveListServiceResponse ratingCurveResponse = executePublishApiRequest(request);
+		RatingCurveListServiceResponse ratingCurveResponse = aquariusRetrievalService.executePublishApiRequest(request);
 		return ratingCurveResponse;
 	}
 
 	public List<RatingCurve> getAqcuFilteredRatingCurves(List<RatingCurve> responseCurves, Instant startDate, Instant endDate) {
-		List<RatingCurve> filteredCurves = new ArrayList<>();
+		Set<RatingCurve> filteredCurves = new HashSet<>();
 		List<ImmutablePair<Integer,PeriodOfApplicability>> fullPeriodList = new ArrayList<>();
 		List<ImmutablePair<Integer,PeriodOfApplicability>> filteredPeriodList = new ArrayList<>();
 
@@ -54,7 +65,7 @@ public class RatingCurveListService extends AquariusRetrievalService {
 			filteredCurves.add(responseCurves.get(pair.getKey()));
 		}
 
-		return filteredCurves;
+		return new ArrayList<>(filteredCurves);
 	}
 	
 	public List<RatingShift> getAqcuFilteredRatingShifts(List<RatingCurve> curves, Instant startDate, Instant endDate) {
@@ -83,7 +94,7 @@ public class RatingCurveListService extends AquariusRetrievalService {
 		return filteredShifts;
 	}
 
-	private List<ImmutablePair<Integer,PeriodOfApplicability>> getRatingPeriodsWithinReportRange(List<ImmutablePair<Integer,PeriodOfApplicability>> pairList, Instant startDate, Instant endDate) {
+	protected List<ImmutablePair<Integer,PeriodOfApplicability>> getRatingPeriodsWithinReportRange(List<ImmutablePair<Integer,PeriodOfApplicability>> pairList, Instant startDate, Instant endDate) {
 		List<ImmutablePair<Integer,PeriodOfApplicability>> includePairs = new ArrayList<>();
 
 		PeriodOfApplicability reportPeriod = new PeriodOfApplicability();
@@ -120,7 +131,7 @@ public class RatingCurveListService extends AquariusRetrievalService {
 						includePairs.add(prevPair);
 					}
 				}
-			} else if(pair.getValue().getStartTime().compareTo(endDate) > 0) {
+			} else if(pair.getValue().getStartTime().compareTo(endDate) >= 0) {
 				//If this Rating Period is after the Report End Date then this is the last period to process
 				//If the previous Period was inlcuded and open-ended then also include this Period
 				if(prevPair != null && includePairs.contains(prevPair) && AqcuTimeUtils.isOpenEndedTime(prevPair.getValue().getEndTime())) {
@@ -133,9 +144,10 @@ public class RatingCurveListService extends AquariusRetrievalService {
 		return includePairs;
 	}
 
-	private PeriodOfApplicability createEffectiveRatingPeriod(PeriodOfApplicability ratingPeriod, PeriodOfApplicability nextRatingPeriod) {
+	protected PeriodOfApplicability createEffectiveRatingPeriod(PeriodOfApplicability ratingPeriod, PeriodOfApplicability nextRatingPeriod) {
 		PeriodOfApplicability effectivePeriod = new PeriodOfApplicability();
 		effectivePeriod.setStartTime(ratingPeriod.getStartTime());
+		effectivePeriod.setRemarks(ratingPeriod.getRemarks());
 
 		//Periods with open-ended End Times are "ended" by the Start Time of the next Period, if it exists
 		if(AqcuTimeUtils.isOpenEndedTime(ratingPeriod.getEndTime()) && nextRatingPeriod != null) {

@@ -9,24 +9,32 @@ import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.DownchainProcessorListByTimeSeriesServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
-import gov.usgs.aqcu.exception.AquariusException;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Processor;
 
-@Component
-public class DownchainProcessorListService extends AquariusRetrievalService {
+@Repository
+public class DownchainProcessorListService {
 	private static final Logger LOG = LoggerFactory.getLogger(UpchainProcessorListService.class);
 
-	public ProcessorListServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) throws AquariusException {
+	private AquariusRetrievalService aquariusRetrievalService;
+
+	@Autowired
+	public DownchainProcessorListService(
+		AquariusRetrievalService aquariusRetrievalService
+	) {
+		this.aquariusRetrievalService = aquariusRetrievalService;
+	}
+
+	public ProcessorListServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) {
 				DownchainProcessorListByTimeSeriesServiceRequest request = new DownchainProcessorListByTimeSeriesServiceRequest()
 				.setTimeSeriesUniqueId(primaryTimeseriesIdentifier)
 				.setQueryFrom(startDate)
 				.setQueryTo(endDate);
-		ProcessorListServiceResponse processorsResponse = executePublishApiRequest(request);
+		ProcessorListServiceResponse processorsResponse = aquariusRetrievalService.executePublishApiRequest(request);
 		return processorsResponse;
 	}
 

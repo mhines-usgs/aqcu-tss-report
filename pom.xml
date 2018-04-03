@@ -8,12 +8,14 @@
 
     <properties>
         <cida.maven.url>https://internal.cida.usgs.gov/maven/content/repositories</cida.maven.url>
+        <wma.artifactory.url>https://cida.usgs.gov/artifactory</wma.artifactory.url>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <additionalparam>-Xdoclint:none</additionalparam>
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <springfox.version>2.8.0</springfox.version>
+        <aqcu.framework.version>0.0.1-SNAPSHOT</aqcu.framework.version>
     </properties>
 
     <parent>
@@ -27,6 +29,11 @@
             <id>cida-public</id>
             <name>CIDA Public Nexus</name>
             <url>${cida.maven.url}/cida-public-releases/</url>
+        </repository>
+        <repository>
+            <id>aqcu-maven-centralized</id>
+            <name>AQCU Maven Centralized (Artifactor)</name>
+            <url>${wma.artifactory.url}/aqcu-maven-centralized/</url>
         </repository>
     </repositories>
 
@@ -43,6 +50,12 @@
     </dependencyManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>gov.usgs.aqcu</groupId>
+            <artifactId>aqcu-framework</artifactId>
+            <version>${aqcu.framework.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-config</artifactId>

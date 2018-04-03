@@ -4,23 +4,32 @@ import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataCorrectedServiceRequest;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
-import gov.usgs.aqcu.exception.AquariusException;
 
-@Component
-public class TimeSeriesDataCorrectedService extends AquariusRetrievalService {
+@Repository
+public class TimeSeriesDataCorrectedService {
 	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesDataCorrectedService.class);
 
-	public TimeSeriesDataServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) throws AquariusException {
+	private AquariusRetrievalService aquariusRetrievalService;
+
+	@Autowired
+	public TimeSeriesDataCorrectedService(
+		AquariusRetrievalService aquariusRetrievalService
+	) {
+		this.aquariusRetrievalService = aquariusRetrievalService;
+	}
+
+	public TimeSeriesDataServiceResponse getRawResponse(String primaryTimeseriesIdentifier, Instant startDate, Instant endDate) {
 		TimeSeriesDataCorrectedServiceRequest request = new TimeSeriesDataCorrectedServiceRequest()
 				.setTimeSeriesUniqueId(primaryTimeseriesIdentifier)
 				.setQueryFrom(startDate)
 				.setIncludeGapMarkers(true)
 				.setQueryTo(endDate);
-		TimeSeriesDataServiceResponse timeSeriesResponse  = executePublishApiRequest(request);
+		TimeSeriesDataServiceResponse timeSeriesResponse = aquariusRetrievalService.executePublishApiRequest(request);
 		return timeSeriesResponse;
 	}
 }

@@ -1,32 +1,24 @@
 package gov.usgs.aqcu;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.time.Instant;
-import java.time.LocalDate;
 import com.google.gson.Gson;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.format.annotation.DateTimeFormat;
 
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 import gov.usgs.aqcu.client.JavaToRClient;
 import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
-import gov.usgs.aqcu.util.AqcuTimeUtils;
+import gov.usgs.aqcu.parameter.TimeSeriesSummaryRequestParameters;
 
 @RestController
-@Validated
 @RequestMapping("/timeseriessummary")
 public class Controller {
 	private static final Logger LOG = LoggerFactory.getLogger(Controller.class);
@@ -45,57 +37,21 @@ public class Controller {
 	}
 
 	@GetMapping(produces={MediaType.TEXT_HTML_VALUE})
-	public ResponseEntity<?> getReport(
-			@RequestParam String primaryTimeseriesIdentifier,
-			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			@RequestParam(required=false) LocalDate startDate,
-			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			@RequestParam(required=false) LocalDate endDate,
-			@RequestParam(required=false) Integer waterYear,
-			@RequestParam(required=false) Integer lastMonths,
-			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
-		//Pull Requesting User From Headers
-		String requestingUser = "testUser";
-
-		//Build Report Period
-		Pair<Instant,Instant> reportPeriod = AqcuTimeUtils.getPeportPeriodFromParams(waterYear, lastMonths, startDate, endDate);
-		
-		//Replace null parameters with empty values
-		if(excludedCorrections == null) {
-			excludedCorrections = new ArrayList<>();
-		}
-
-		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, reportPeriod.getKey(), reportPeriod.getValue(), requestingUser);
-
+	public ResponseEntity<?> getReport(@Validated TimeSeriesSummaryRequestParameters requestParameters) throws Exception {
+		String requestingUser = getRequestingUser();
+		TimeSeriesSummaryReport report = reportBuilderService.buildReport(requestParameters, requestingUser);
 		byte[] reportHtml = javaToRClient.render(requestingUser, "timeseriessummary", gson.toJson(report, TimeSeriesSummaryReport.class));
 		return new ResponseEntity<byte[]>(reportHtml, new HttpHeaders(), HttpStatus.OK);
 	}
 	
 	@GetMapping(value="/rawData", produces={MediaType.APPLICATION_JSON_VALUE})
-	public ResponseEntity<TimeSeriesSummaryReport> getReportRawData(
-			@RequestParam String primaryTimeseriesIdentifier,
-			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			@RequestParam(required=false) LocalDate startDate,
-			@DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-			@RequestParam(required=false) LocalDate endDate,
-			@RequestParam(required=false) Integer waterYear,
-			@RequestParam(required=false) Integer lastMonths,
-			@RequestParam(required=false) List<String> excludedCorrections) throws Exception {
-		//Pull Requesting User From Headers
-		String requestingUser = "testUser";
-
-		//Build Report Period
-		Pair<Instant,Instant> reportPeriod = AqcuTimeUtils.getPeportPeriodFromParams(waterYear, lastMonths, startDate, endDate);
-
-		//Replace null parameters with empty values
-		if(excludedCorrections == null) {
-			excludedCorrections = new ArrayList<>();
-		}
-
-		//Build the TSS Report JSON
-		TimeSeriesSummaryReport report = reportBuilderService.buildReport(primaryTimeseriesIdentifier, excludedCorrections, reportPeriod.getKey(), reportPeriod.getValue(), requestingUser);
-
+	public ResponseEntity<TimeSeriesSummaryReport> getReportRawData(@Validated TimeSeriesSummaryRequestParameters requestParameters) throws Exception {
+		TimeSeriesSummaryReport report = reportBuilderService.buildReport(requestParameters, getRequestingUser());
 		return new ResponseEntity<TimeSeriesSummaryReport>(report, new HttpHeaders(), HttpStatus.OK);
+	}
+
+	String getRequestingUser() {
+		//Pull Requesting User From SecurityContext
+		return "testUser";
 	}
 }
