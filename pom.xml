@@ -25,11 +25,6 @@
     </parent>
 
     <repositories>
-        <!--repository>
-            <id>cida-public</id>
-            <name>CIDA Public Nexus</name>
-            <url>${cida.maven.url}/cida-public-releases/</url>
-        </repository-->
         <repository>
             <id>aqcu-maven-centralized</id>
             <name>AQCU Maven Centralized (Artifactor)</name>
