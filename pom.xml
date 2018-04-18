@@ -15,7 +15,7 @@
         <additionalparam>-Xdoclint:none</additionalparam>
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <springfox.version>2.8.0</springfox.version>
-        <aqcu.framework.version>0.0.1-SNAPSHOT</aqcu.framework.version>
+        <aqcu.framework.version>0.0.1</aqcu.framework.version>
     </properties>
 
     <parent>
@@ -27,7 +27,7 @@
     <repositories>
         <repository>
             <id>aqcu-maven-centralized</id>
-            <name>AQCU Maven Centralized (Artifactor)</name>
+            <name>AQCU Maven Centralized (Artifactory)</name>
             <url>${wma.artifactory.url}/aqcu-maven-centralized/</url>
         </repository>
     </repositories>

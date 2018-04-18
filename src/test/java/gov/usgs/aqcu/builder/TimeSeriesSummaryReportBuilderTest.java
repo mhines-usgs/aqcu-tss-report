@@ -331,6 +331,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void addReportMetadataTest() {
 		given(gradeService.getByGradeList(any(ArrayList.class)))
 			.willReturn(new HashMap<>());
