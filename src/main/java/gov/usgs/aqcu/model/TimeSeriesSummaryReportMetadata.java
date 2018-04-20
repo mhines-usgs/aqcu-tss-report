@@ -1,5 +1,6 @@
 package gov.usgs.aqcu.model;
 
+import java.time.ZoneOffset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,10 +43,10 @@ public class TimeSeriesSummaryReportMetadata extends ReportMetadata {
 		primaryParameter = val;
 	}
 	
-	public void setRequestParameters(TimeSeriesSummaryRequestParameters val) {
+	public void setRequestParameters(TimeSeriesSummaryRequestParameters val, ZoneOffset timezone) {
 		requestParameters = val;
-		setStartDate(val.getStartInstant());
-		setEndDate(val.getEndInstant());
+		setStartDate(val.getStartInstant(timezone));
+		setEndDate(val.getEndInstant(timezone));
 		setPrimaryTimeSeriesIdentifier(val.getPrimaryTimeseriesIdentifier());
 	}
 

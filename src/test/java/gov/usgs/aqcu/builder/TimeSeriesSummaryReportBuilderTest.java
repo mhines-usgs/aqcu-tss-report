@@ -3,12 +3,14 @@ package gov.usgs.aqcu.builder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -104,7 +106,6 @@ public class TimeSeriesSummaryReportBuilderTest {
 	List<TimeSeriesDescription> upDescs = TimeSeriesDescriptionListServiceTest.DESC_LIST;
 	List<TimeSeriesDescription> downDescs = TimeSeriesDescriptionListServiceTest.DESC_LIST;
 	TimeSeriesDataServiceResponse primaryData = TimeSeriesDataCorrectedServiceTest.TS_DATA_RESPONSE;
-	HashMap<String, List<TimeSeriesDescription>> descriptionMap;
 	List<ExtendedCorrection> extCorrs;
 	List<RatingCurve> ratingCurves;
 	List<RatingShift> rawShifts;
@@ -127,17 +128,11 @@ public class TimeSeriesSummaryReportBuilderTest {
 		//Metadata
 		metadata = new TimeSeriesSummaryReportMetadata();
 		metadata.setPrimaryParameter(primaryDesc.getParameter());
-		metadata.setRequestParameters(requestParams);
+		metadata.setRequestParameters(requestParams, ZoneOffset.UTC);
 		metadata.setStationId(primaryDesc.getLocationIdentifier());
 		metadata.setStationName(primaryLoc.getName());
 		metadata.setTimezone(primaryDesc.getUtcOffset());
 		metadata.setTitle(TimeSeriesSummaryReportBuilderService.REPORT_TITLE);
-
-		//Description Map
-		descriptionMap = new HashMap<>();
-		descriptionMap.put("primary", Arrays.asList(primaryDesc));
-		descriptionMap.put("upchain", upDescs);
-		descriptionMap.put("downchain", downDescs);
 
 		//Corrections
 		extCorrs = new ArrayList<>();
@@ -162,19 +157,21 @@ public class TimeSeriesSummaryReportBuilderTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void buildReportBasicTest() {
-		given(downchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant()))
+		given(downchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
 			.willReturn(new ProcessorListServiceResponse().setProcessors(downProcessors));
 		given(downchainService.getOutputTimeSeriesUniqueIdList(downProcessors))
 			.willReturn(Arrays.asList(downProcessors.get(0).getOutputTimeSeriesUniqueId(), downProcessors.get(1).getOutputTimeSeriesUniqueId()));
-		given(upchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant()))
+		given(upchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
 			.willReturn(new ProcessorListServiceResponse().setProcessors(upProcessors));
 		given(upchainService.getInputTimeSeriesUniqueIdList(upProcessors))
 			.willReturn(Arrays.asList(upProcessors.get(0).getOutputTimeSeriesUniqueId(), upProcessors.get(1).getOutputTimeSeriesUniqueId()));
-		given(descService.getBatchTimeSeriesDescriptionLists(any(HashMap.class)))
-			.willReturn(descriptionMap);
-		given(tsDataService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant()))
+		given(descService.getTimeSeriesDescription(any(String.class)))
+			.willReturn(primaryDesc);
+		given(descService.getTimeSeriesDescriptionList(any(List.class)))
+			.willReturn(TimeSeriesDescriptionListServiceTest.DESC_LIST);
+		given(tsDataService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
 			.willReturn(primaryData);
-		given(corrListService.getExtendedCorrectionList(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant(), requestParams.getExcludedCorrections()))
+		given(corrListService.getExtendedCorrectionList(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC), requestParams.getExcludedCorrections()))
 			.willReturn(extCorrs);
 		given(locService.getByLocationIdentifier(metadata.getStationId()))
 			.willReturn(primaryLoc);
@@ -228,19 +225,21 @@ public class TimeSeriesSummaryReportBuilderTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void builderReportNoProcessorsTest() {
-		given(downchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant()))
+		given(downchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
 			.willReturn(new ProcessorListServiceResponse().setProcessors(downProcessors));
 		given(downchainService.getOutputTimeSeriesUniqueIdList(downProcessors))
 			.willReturn(Arrays.asList(downProcessors.get(0).getOutputTimeSeriesUniqueId(), downProcessors.get(1).getOutputTimeSeriesUniqueId()));
-		given(upchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant()))
+		given(upchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
 			.willReturn(new ProcessorListServiceResponse().setProcessors(new ArrayList<>()));
 		given(upchainService.getInputTimeSeriesUniqueIdList(upProcessors))
 			.willReturn(new ArrayList<>());
-		given(descService.getBatchTimeSeriesDescriptionLists(any(HashMap.class)))
-			.willReturn(descriptionMap);
-		given(tsDataService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant()))
+		given(descService.getTimeSeriesDescription(any(String.class)))
+			.willReturn(primaryDesc);
+		given(descService.getTimeSeriesDescriptionList(any(List.class)))
+			.willReturn(new ArrayList<>());
+		given(tsDataService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
 			.willReturn(primaryData);
-		given(corrListService.getExtendedCorrectionList(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant(), requestParams.getExcludedCorrections()))
+		given(corrListService.getExtendedCorrectionList(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC), requestParams.getExcludedCorrections()))
 			.willReturn(extCorrs);
 		given(locService.getByLocationIdentifier(metadata.getStationId()))
 			.willReturn(primaryLoc);
@@ -271,8 +270,8 @@ public class TimeSeriesSummaryReportBuilderTest {
 		assertEquals(report.getPrimaryTsData().getNotes(), primaryData.getNotes());
 		assertEquals(report.getPrimaryTsData().getProcessors(), new ArrayList<>());
 		assertEquals(report.getPrimaryTsData().getQualifiers(), primaryData.getQualifiers());
-		assertEquals(report.getUpchainTs().size(), upDescs.size());
-		assertEquals(report.getDownchainTs().size(), downDescs.size());
+		assertEquals(report.getUpchainTs().size(), 0);
+		assertEquals(report.getDownchainTs().size(), 0);
 		assertEquals(report.getPrimaryTsMetadata(), primaryDesc);
 		assertEquals(report.getReportMetadata().getStationId(), primaryDesc.getLocationIdentifier());
 		assertEquals(report.getReportMetadata().getPrimaryParameter(), primaryDesc.getParameter());
@@ -285,43 +284,11 @@ public class TimeSeriesSummaryReportBuilderTest {
 	}
 
 	@Test
-	@SuppressWarnings("unchecked")
-	public void addTimeSeriesDataTest() {
-		given(downchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant()))
-			.willReturn(new ProcessorListServiceResponse().setProcessors(downProcessors));
-		given(downchainService.getOutputTimeSeriesUniqueIdList(downProcessors))
-			.willReturn(Arrays.asList(downProcessors.get(0).getOutputTimeSeriesUniqueId(), downProcessors.get(1).getOutputTimeSeriesUniqueId()));
-		given(upchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant()))
-			.willReturn(new ProcessorListServiceResponse().setProcessors(upProcessors));
-		given(upchainService.getInputTimeSeriesUniqueIdList(upProcessors))
-			.willReturn(Arrays.asList(upProcessors.get(0).getOutputTimeSeriesUniqueId(), upProcessors.get(1).getOutputTimeSeriesUniqueId()));
-		given(descService.getBatchTimeSeriesDescriptionLists(any(HashMap.class)))
-			.willReturn(descriptionMap);
-		given(tsDataService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant()))
-			.willReturn(primaryData);
-		
-		TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
-		report = service.addTimeSeriesData(requestParams);
-		assertEquals(report.getPrimaryTsData().getApprovals(), primaryData.getApprovals());
-		assertEquals(report.getPrimaryTsData().getGaps(), new ArrayList<>());
-		assertEquals(report.getPrimaryTsData().getGapTolerances(), primaryData.getGapTolerances());
-		assertEquals(report.getPrimaryTsData().getGrades(), primaryData.getGrades());
-		assertEquals(report.getPrimaryTsData().getInterpolationTypes(), primaryData.getInterpolationTypes());
-		assertEquals(report.getPrimaryTsData().getMethods(), primaryData.getMethods());
-		assertEquals(report.getPrimaryTsData().getNotes(), primaryData.getNotes());
-		assertEquals(report.getPrimaryTsData().getProcessors(), upProcessors);
-		assertEquals(report.getPrimaryTsData().getQualifiers(), primaryData.getQualifiers());
-		assertEquals(report.getUpchainTs().size(), upDescs.size());
-		assertEquals(report.getDownchainTs().size(), downDescs.size());
-		assertEquals(report.getPrimaryTsMetadata(), primaryDesc);
-	}
-
-	@Test
-	public void addCorrectionDataTest() {
-		given(corrListService.getExtendedCorrectionList(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(), requestParams.getEndInstant(), requestParams.getExcludedCorrections()))
+	public void getCorrectionDataTest() {
+		given(corrListService.getExtendedCorrectionList(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC), requestParams.getExcludedCorrections()))
 			.willReturn(extCorrs);
 
-		TimeSeriesSummaryCorrections corrs = service.addCorrectionsData(requestParams, metadata.getStationId());
+		TimeSeriesSummaryCorrections corrs = service.getCorrectionsData(requestParams, ZoneOffset.UTC, metadata.getStationId());
 		assertEquals(corrs.getCorrUrl(), reportUrlBuilderService.buildAqcuReportUrl("correctionsataglance", metadata.getStationId(), requestParams, null));
 		assertEquals(corrs.getPreProcessing().size(), 0);
 		assertEquals(corrs.getNormal().size(), 1);
@@ -332,7 +299,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void addReportMetadataTest() {
+	public void getReportMetadataTest() {
 		given(gradeService.getByGradeList(any(ArrayList.class)))
 			.willReturn(new HashMap<>());
 		given(qualService.getByQualifierList(any(ArrayList.class)))
@@ -340,7 +307,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		given(locService.getByLocationIdentifier(metadata.getStationId()))
 			.willReturn(primaryLoc);
 		
-		TimeSeriesSummaryReportMetadata newMetadata = service.addReportMetadata(requestParams, primaryLoc.getIdentifier(), primaryDesc.getParameter(), primaryDesc.getUtcOffset(), new ArrayList<>(), new ArrayList<>());
+		TimeSeriesSummaryReportMetadata newMetadata = service.getReportMetadata(requestParams, ZoneOffset.UTC, primaryLoc.getIdentifier(), primaryDesc.getParameter(), primaryDesc.getUtcOffset(), new ArrayList<>(), new ArrayList<>());
 		assertTrue(newMetadata != null);
 		assertEquals(newMetadata.getPrimaryTimeSeriesIdentifier(), metadata.getPrimaryTimeSeriesIdentifier());
 		assertEquals(newMetadata.getRequestParameters(), metadata.getRequestParameters());
@@ -356,23 +323,23 @@ public class TimeSeriesSummaryReportBuilderTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void addRatingCurvesTest() {
+	public void getRatingCurvesTest() {
 		given(ratingService.getRawResponse(any(String.class), any(Double.class), any(Instant.class), any(Instant.class)))
 			.willReturn(new RatingCurveListServiceResponse().setRatingCurves(ratingCurves));
 		given(ratingService.getAqcuFilteredRatingCurves(any(ArrayList.class), any(Instant.class), any(Instant.class)))
 			.willReturn(ratingCurves);
 
-		List<RatingCurve> resultCurves = service.addRatingCurves(requestParams, "primaryRatingModel");
+		List<RatingCurve> resultCurves = service.getRatingCurves(requestParams, ZoneOffset.UTC, "primaryRatingModel");
 		assertEquals(resultCurves, ratingCurves);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void addRatingShiftsTest() {
+	public void getRatingShiftsTest() {
 		given(ratingService.getAqcuFilteredRatingShifts(any(ArrayList.class), any(Instant.class), any(Instant.class)))
 			.willReturn(rawShifts);
 
-		List<TimeSeriesSummaryRatingShift> resultShifts = service.addRatingShifts(requestParams, ratingCurves);
+		List<TimeSeriesSummaryRatingShift> resultShifts = service.getRatingShifts(requestParams, ZoneOffset.UTC, ratingCurves);
 		assertEquals(resultShifts.size(), ratingShifts.size());
 		assertEquals(gson.toJson(resultShifts), gson.toJson(ratingShifts));
 	}
@@ -389,5 +356,41 @@ public class TimeSeriesSummaryReportBuilderTest {
 			assertEquals(related.get(i).getIdentifier(), upDescs.get(i).getIdentifier());
 			assertEquals(related.get(i).getUrl(), "url-" + upDescs.get(i).getUniqueId());
 		}
+	}
+
+	@Test
+	public void isDailyTimeSeriesNullTest() {
+		assertFalse(service.isDailyTimeSeries(null));
+		assertFalse(service.isDailyTimeSeries(new TimeSeriesDescription()));
+	}
+
+	@Test
+	public void isDailyTimeSeriesTrueTest() {
+		assertTrue(service.isDailyTimeSeries(new TimeSeriesDescription().setComputationPeriodIdentifier("DaiLY")));
+	}
+
+	@Test
+	public void isDailyTimeSeriesFalseTest() {
+		assertFalse(service.isDailyTimeSeries(new TimeSeriesDescription().setComputationPeriodIdentifier("NEVER")));
+	}
+
+	@Test
+	public void getZoneOffsetNullTest() {
+		assertEquals(ZoneOffset.UTC, service.getZoneOffset(null));
+	}
+
+	@Test
+	public void getZoneOffsetMinutesTest() {
+		assertEquals(ZoneOffset.ofHoursMinutes(-5, -30), service.getZoneOffset(new TimeSeriesDescription().setUtcOffset(-5.3)));
+	}
+
+	@Test
+	public void getZoneOffsetHoursTest() {
+		assertEquals(ZoneOffset.ofHours(6), service.getZoneOffset(new TimeSeriesDescription().setUtcOffset(6.0)));
+	}
+
+	@Test
+	public void getZoneOffsetEatExceptionTest() {
+		assertEquals(ZoneOffset.UTC, service.getZoneOffset(new TimeSeriesDescription().setUtcOffset(24.0)));
 	}
 }

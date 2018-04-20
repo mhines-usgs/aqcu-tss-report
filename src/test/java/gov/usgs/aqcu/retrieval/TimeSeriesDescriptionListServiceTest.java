@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.oauth2.client.test.BeforeOAuth2Context;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import gov.usgs.aqcu.exception.AquariusProcessingException;
@@ -73,8 +74,8 @@ public class TimeSeriesDescriptionListServiceTest {
 		.setTimeSeriesType("type-1")
 		.setUniqueId("uid-1")
 		.setUnit("unit-1")
-		.setUtcOffset(1.0)
-		.setUtcOffsetIsoDuration(Duration.ofHours(1));
+		.setUtcOffset(0.0)
+		.setUtcOffsetIsoDuration(Duration.ofHours(0));
 	public static final TimeSeriesDescription DESC_2 = new TimeSeriesDescription()
 		.setComment("comment-2")
 		.setComputationIdentifier("comp-id-2")
@@ -99,54 +100,36 @@ public class TimeSeriesDescriptionListServiceTest {
 	public static final ArrayList<TimeSeriesDescription> DESC_LIST = new ArrayList<>(Arrays.asList(DESC_1, DESC_2));
 
     @Before
-	@SuppressWarnings("unchecked")
 	public void setup() {
 		service = new TimeSeriesDescriptionListService(aquariusService);
-		given(aquariusService.executePublishApiRequest(any(IReturn.class))).willReturn(new TimeSeriesDescriptionListByUniqueIdServiceResponse()
-				.setTimeSeriesDescriptions(new ArrayList<TimeSeriesDescription>(Arrays.asList(DESC_1, DESC_2))));
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void getRawResponseTest() {
+		given(aquariusService.executePublishApiRequest(any(IReturn.class))).willReturn(new TimeSeriesDescriptionListByUniqueIdServiceResponse()
+				.setTimeSeriesDescriptions(new ArrayList<TimeSeriesDescription>(Arrays.asList(DESC_1, DESC_2))));
 		List<TimeSeriesDescription> results = service.getRawResponse(Arrays.asList("ts-uid1", "ts-uid2")).getTimeSeriesDescriptions();
 		assertEquals(results.size(), 2);
 		assertThat(results, containsInAnyOrder(DESC_1, DESC_2));
 	}
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void getTimeSeriesDescriptionListTest() {
-		List<TimeSeriesDescription> results = service.getTimeSeriesDescriptionList(new HashSet<>(Arrays.asList("ts-uid1", "ts-uid2")));
+		given(aquariusService.executePublishApiRequest(any(IReturn.class))).willReturn(new TimeSeriesDescriptionListByUniqueIdServiceResponse()
+				.setTimeSeriesDescriptions(new ArrayList<TimeSeriesDescription>(Arrays.asList(DESC_1, DESC_2))));
+		List<TimeSeriesDescription> results = service.getTimeSeriesDescriptionList(Arrays.asList("ts-uid1", "ts-uid2"));
 		assertEquals(results.size(), 2);
 		assertThat(results, containsInAnyOrder(DESC_1, DESC_2));
 	}
 
 	@Test
-	public void getBatchTimeSeriesDescriptionListTest() {
-		Map<String,List<String>> idMap = new HashMap<>();
-		idMap.put("group-1", Arrays.asList("uid-1"));
-		idMap.put("group-2", Arrays.asList("uid-2"));
-		Map<String,List<TimeSeriesDescription>> results = service.getBatchTimeSeriesDescriptionLists(idMap);
-		assertEquals(results.size(), 2);
-		assertEquals(results.get("group-1").size(), 1);
-		assertEquals(results.get("group-2").size(), 1);
-		assertThat(results.get("group-1"), containsInAnyOrder(DESC_1));
-		assertThat(results.get("group-2"), containsInAnyOrder(DESC_2));
-	}
-
-	@Test
-	public void getBatchTimeSeriesDescriptionListValidationTest() {
-		Map<String,List<String>> idMap = new HashMap<>();
-		idMap.put("group-1", Arrays.asList("uid-1"));
-		idMap.put("group-2", Arrays.asList("uid-2"));
-		idMap.put("group-3", Arrays.asList("uid-3"));
-
-		try {
-			service.getBatchTimeSeriesDescriptionLists(idMap);
-			fail("Expected AquariusProcessingException but got none.");
-		} catch (AquariusProcessingException e) {
-			//Success
-		} catch (Exception e) {
-			fail("Expected AquariusProcessingException but got " + e.toString());
-		}	
+	@SuppressWarnings("unchecked")
+	public void getTimeSeriesDescriptionTest() {
+		given(aquariusService.executePublishApiRequest(any(IReturn.class))).willReturn(new TimeSeriesDescriptionListByUniqueIdServiceResponse()
+				.setTimeSeriesDescriptions(new ArrayList<TimeSeriesDescription>(Arrays.asList(DESC_1))));
+		TimeSeriesDescription result = service.getTimeSeriesDescription("ts-uid1");
+		assertEquals(result, DESC_1);
 	}
 }

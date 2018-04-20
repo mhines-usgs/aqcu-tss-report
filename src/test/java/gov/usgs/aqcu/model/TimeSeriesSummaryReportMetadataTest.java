@@ -3,6 +3,7 @@ package gov.usgs.aqcu.model;
 import static org.junit.Assert.assertEquals;
 
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -22,11 +23,11 @@ public class TimeSeriesSummaryReportMetadataTest {
     @Test
 	public void setRequestParametersTest() {
 	   TimeSeriesSummaryReportMetadata metadata = new TimeSeriesSummaryReportMetadata();
-	   metadata.setRequestParameters(params);
+	   metadata.setRequestParameters(params, ZoneOffset.UTC);
 
 	   assertEquals(metadata.getRequestParameters(), params);
-	   assertEquals(metadata.getStartDate(), params.getStartInstant());
-	   assertEquals(metadata.getEndDate(), params.getEndInstant());
+	   assertEquals(metadata.getStartDate(), params.getStartInstant(ZoneOffset.UTC));
+	   assertEquals(metadata.getEndDate(), params.getEndInstant(ZoneOffset.UTC));
 	   assertEquals(metadata.getPrimaryTimeSeriesIdentifier(), params.getPrimaryTimeseriesIdentifier());
 	}
 }
