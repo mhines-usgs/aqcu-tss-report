@@ -27,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import gov.usgs.aqcu.model.ExtendedCorrection;
+import gov.usgs.aqcu.model.TimeSeriesSummaryCorrectedData;
 import gov.usgs.aqcu.model.TimeSeriesSummaryCorrections;
 import gov.usgs.aqcu.model.TimeSeriesSummaryRatingShift;
 import gov.usgs.aqcu.model.TimeSeriesSummaryRelatedSeries;
@@ -319,6 +320,85 @@ public class TimeSeriesSummaryReportBuilderTest {
 		assertEquals(newMetadata.getTimezone(), metadata.getTimezone());
 		assertEquals(newMetadata.getGradeMetadata(), new HashMap<>());
 		assertEquals(newMetadata.getQualifierMetadata(), new HashMap<>());
+	}
+
+	@Test
+	public void getCorrectedDataTest() {
+		given(tsDataService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
+			.willReturn(primaryData);
+		TimeSeriesSummaryCorrectedData corrData = service.getCorrectedData(requestParams, ZoneOffset.UTC, upProcessors, false);
+		assertTrue(corrData != null);
+		assertEquals(corrData.getApprovals(), primaryData.getApprovals());
+		assertEquals(corrData.getGaps(), new ArrayList<>());
+		assertEquals(corrData.getGapTolerances(), primaryData.getGapTolerances());
+		assertEquals(corrData.getGrades(), primaryData.getGrades());
+		assertEquals(corrData.getInterpolationTypes(), primaryData.getInterpolationTypes());
+		assertEquals(corrData.getMethods(), primaryData.getMethods());
+		assertEquals(corrData.getNotes(), primaryData.getNotes());
+		assertEquals(corrData.getProcessors(), upProcessors);
+		assertEquals(corrData.getQualifiers(), primaryData.getQualifiers());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void getDerivationChainTSUpchainTest() {
+		given(upchainService.getInputTimeSeriesUniqueIdList(upProcessors))
+			.willReturn(Arrays.asList(upProcessors.get(0).getOutputTimeSeriesUniqueId(), upProcessors.get(1).getOutputTimeSeriesUniqueId()));
+		given(descService.getTimeSeriesDescriptionList(any(List.class)))
+			.willReturn(upDescs);
+		
+		List<TimeSeriesSummaryRelatedSeries> relatedSeries = service.getDerivationChainTS(true, requestParams, ZoneOffset.UTC, metadata.getStationId(), upProcessors);
+		assertTrue(relatedSeries != null);
+		assertTrue(relatedSeries.size() == upDescs.size());
+		assertTrue(relatedSeries.get(0).getIdentifier().compareTo(upDescs.get(0).getIdentifier()) == 0);
+		assertTrue(relatedSeries.get(1).getIdentifier().compareTo(upDescs.get(1).getIdentifier()) == 0);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void getDerivationChainTSDownchainTest() {
+		given(downchainService.getOutputTimeSeriesUniqueIdList(downProcessors))
+			.willReturn(Arrays.asList(downProcessors.get(0).getOutputTimeSeriesUniqueId(), downProcessors.get(1).getOutputTimeSeriesUniqueId()));
+		given(descService.getTimeSeriesDescriptionList(any(List.class)))
+			.willReturn(downDescs);
+		
+		List<TimeSeriesSummaryRelatedSeries> relatedSeries = service.getDerivationChainTS(false, requestParams, ZoneOffset.UTC, metadata.getStationId(), downProcessors);
+		assertTrue(relatedSeries != null);
+		assertTrue(relatedSeries.size() == downDescs.size());
+		assertTrue(relatedSeries.get(0).getIdentifier().compareTo(downDescs.get(0).getIdentifier()) == 0);
+		assertTrue(relatedSeries.get(1).getIdentifier().compareTo(downDescs.get(1).getIdentifier()) == 0);
+	}
+
+	@Test
+	public void getProcessorsDownchainTest() {
+		given(downchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
+			.willReturn(new ProcessorListServiceResponse().setProcessors(downProcessors));
+		List<Processor> result = service.getProcessors(false, requestParams, ZoneOffset.UTC);
+		assertTrue(result != null);
+		assertTrue(result.size() == downProcessors.size());
+		assertTrue(result.containsAll(downProcessors));
+	}
+
+	@Test
+	public void getProcessorsUpchainTest() {
+		given(upchainService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
+			.willReturn(new ProcessorListServiceResponse().setProcessors(upProcessors));
+			List<Processor> result = service.getProcessors(true, requestParams, ZoneOffset.UTC);
+			assertTrue(result != null);
+			assertTrue(result.size() == upProcessors.size());
+			assertTrue(result.containsAll(upProcessors));
+	}
+
+	@Test
+	public void getRatingModelTest() {
+		String ratingModel = service.getRatingModel(upProcessors);
+		assertEquals(ratingModel, upProcessors.get(0).getInputRatingModelIdentifier());
+	}
+
+	@Test
+	public void getRatingModelNullTest() {
+		String ratingModel = service.getRatingModel(new ArrayList<>());
+		assertEquals(ratingModel, null);
 	}
 
 	@Test
