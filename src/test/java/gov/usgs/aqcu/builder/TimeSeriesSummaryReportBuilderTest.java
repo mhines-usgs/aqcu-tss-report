@@ -307,7 +307,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		given(locService.getByLocationIdentifier(metadata.getStationId()))
 			.willReturn(primaryLoc);
 		
-		TimeSeriesSummaryReportMetadata newMetadata = service.getReportMetadata(requestParams, ZoneOffset.UTC, primaryLoc.getIdentifier(), primaryDesc.getParameter(), primaryDesc.getUtcOffset(), new ArrayList<>(), new ArrayList<>());
+		TimeSeriesSummaryReportMetadata newMetadata = service.getReportMetadata(requestParams, primaryLoc.getIdentifier(), primaryDesc.getParameter(), primaryDesc.getUtcOffset(), new ArrayList<>(), new ArrayList<>());
 		assertTrue(newMetadata != null);
 		assertEquals(newMetadata.getPrimaryTimeSeriesIdentifier(), metadata.getPrimaryTimeSeriesIdentifier());
 		assertEquals(newMetadata.getRequestParameters(), metadata.getRequestParameters());
