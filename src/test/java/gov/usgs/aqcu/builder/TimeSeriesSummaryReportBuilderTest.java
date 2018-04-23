@@ -127,7 +127,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 
 		//Metadata
 		metadata = new TimeSeriesSummaryReportMetadata();
-		metadata.setPrimaryParameter(primaryDesc.getParameter());
+		metadata.setPrimaryParameter(primaryDesc.getIdentifier());
 		metadata.setRequestParameters(requestParams);
 		metadata.setStationId(primaryDesc.getLocationIdentifier());
 		metadata.setStationName(primaryLoc.getName());
@@ -212,7 +212,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		assertEquals(report.getDownchainTs().size(), downDescs.size());
 		assertEquals(report.getPrimaryTsMetadata(), primaryDesc);
 		assertEquals(report.getReportMetadata().getStationId(), primaryDesc.getLocationIdentifier());
-		assertEquals(report.getReportMetadata().getPrimaryParameter(), primaryDesc.getParameter());
+		assertEquals(report.getReportMetadata().getPrimaryParameter(), primaryDesc.getIdentifier());
 		assertEquals(report.getReportMetadata().getTimezone(), metadata.getTimezone());
 		assertEquals(report.getReportMetadata().getStationName(), metadata.getStationName());
 		assertEquals(report.getRatingCurves(), ratingCurves);
@@ -274,7 +274,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		assertEquals(report.getDownchainTs().size(), 0);
 		assertEquals(report.getPrimaryTsMetadata(), primaryDesc);
 		assertEquals(report.getReportMetadata().getStationId(), primaryDesc.getLocationIdentifier());
-		assertEquals(report.getReportMetadata().getPrimaryParameter(), primaryDesc.getParameter());
+		assertEquals(report.getReportMetadata().getPrimaryParameter(), primaryDesc.getIdentifier());
 		assertEquals(report.getReportMetadata().getTimezone(), metadata.getTimezone());
 		assertEquals(report.getReportMetadata().getStationName(), metadata.getStationName());
 		assertEquals(report.getRatingCurves(), new ArrayList<>());
@@ -307,7 +307,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		given(locService.getByLocationIdentifier(metadata.getStationId()))
 			.willReturn(primaryLoc);
 		
-		TimeSeriesSummaryReportMetadata newMetadata = service.getReportMetadata(requestParams, primaryLoc.getIdentifier(), primaryDesc.getParameter(), primaryDesc.getUtcOffset(), new ArrayList<>(), new ArrayList<>());
+		TimeSeriesSummaryReportMetadata newMetadata = service.getReportMetadata(requestParams, primaryLoc.getIdentifier(), primaryDesc.getIdentifier(), primaryDesc.getUtcOffset(), new ArrayList<>(), new ArrayList<>());
 		assertTrue(newMetadata != null);
 		assertEquals(newMetadata.getPrimaryTimeSeriesIdentifier(), metadata.getPrimaryTimeSeriesIdentifier());
 		assertEquals(newMetadata.getRequestParameters(), metadata.getRequestParameters());
@@ -315,7 +315,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		assertEquals(newMetadata.getEndDate(), metadata.getEndDate());
 		assertEquals(newMetadata.getStationId(), primaryDesc.getLocationIdentifier());
 		assertEquals(newMetadata.getStationName(), primaryLoc.getName());
-		assertEquals(newMetadata.getPrimaryParameter(), primaryDesc.getParameter());
+		assertEquals(newMetadata.getPrimaryParameter(), primaryDesc.getIdentifier());
 		assertEquals(newMetadata.getTimezone(), metadata.getTimezone());
 		assertEquals(newMetadata.getGradeMetadata(), new HashMap<>());
 		assertEquals(newMetadata.getQualifierMetadata(), new HashMap<>());

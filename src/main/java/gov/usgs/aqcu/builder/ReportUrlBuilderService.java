@@ -31,7 +31,7 @@ public class ReportUrlBuilderService {
 
 		reportUrl += SERVICE_ENDPOINT + REPORTS_ENDPOINT + "/" + reportType + "?" +
 			requestParams.getAsQueryString(overrideIdentifier, true) +
-			"&stationId=" + stationId;
+			"&station=" + stationId;
 
 		return reportUrl;
 	}
