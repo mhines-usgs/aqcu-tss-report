@@ -16,7 +16,7 @@
         <additionalparam>-Xdoclint:none</additionalparam>
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <springfox.version>2.8.0</springfox.version>
-        <aqcu.framework.version>0.0.1</aqcu.framework.version>
+        <aqcu.framework.version>0.0.2-SNAPSHOT</aqcu.framework.version>
     </properties>
 
     <parent>
