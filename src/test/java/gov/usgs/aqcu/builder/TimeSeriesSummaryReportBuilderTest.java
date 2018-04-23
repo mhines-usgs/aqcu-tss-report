@@ -3,7 +3,6 @@ package gov.usgs.aqcu.builder;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Matchers.any;
@@ -436,41 +435,5 @@ public class TimeSeriesSummaryReportBuilderTest {
 			assertEquals(related.get(i).getIdentifier(), upDescs.get(i).getIdentifier());
 			assertEquals(related.get(i).getUrl(), "url-" + upDescs.get(i).getUniqueId());
 		}
-	}
-
-	@Test
-	public void isDailyTimeSeriesNullTest() {
-		assertFalse(service.isDailyTimeSeries(null));
-		assertFalse(service.isDailyTimeSeries(new TimeSeriesDescription()));
-	}
-
-	@Test
-	public void isDailyTimeSeriesTrueTest() {
-		assertTrue(service.isDailyTimeSeries(new TimeSeriesDescription().setComputationPeriodIdentifier("DaiLY")));
-	}
-
-	@Test
-	public void isDailyTimeSeriesFalseTest() {
-		assertFalse(service.isDailyTimeSeries(new TimeSeriesDescription().setComputationPeriodIdentifier("NEVER")));
-	}
-
-	@Test
-	public void getZoneOffsetNullTest() {
-		assertEquals(ZoneOffset.UTC, service.getZoneOffset(null));
-	}
-
-	@Test
-	public void getZoneOffsetMinutesTest() {
-		assertEquals(ZoneOffset.ofHoursMinutes(-5, -30), service.getZoneOffset(new TimeSeriesDescription().setUtcOffset(-5.3)));
-	}
-
-	@Test
-	public void getZoneOffsetHoursTest() {
-		assertEquals(ZoneOffset.ofHours(6), service.getZoneOffset(new TimeSeriesDescription().setUtcOffset(6.0)));
-	}
-
-	@Test
-	public void getZoneOffsetEatExceptionTest() {
-		assertEquals(ZoneOffset.UTC, service.getZoneOffset(new TimeSeriesDescription().setUtcOffset(24.0)));
 	}
 }

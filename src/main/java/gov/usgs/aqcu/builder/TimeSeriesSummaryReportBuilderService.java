@@ -24,6 +24,7 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Time
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
 
 import gov.usgs.aqcu.parameter.TimeSeriesSummaryRequestParameters;
+import gov.usgs.aqcu.util.TimeSeriesUtils;
 import gov.usgs.aqcu.model.*;
 import gov.usgs.aqcu.retrieval.*;
 
@@ -77,7 +78,7 @@ public class TimeSeriesSummaryReportBuilderService {
 
 		//Primary TS Metadata
 		TimeSeriesDescription primaryDescription = timeSeriesDescriptionListService.getTimeSeriesDescription(requestParameters.getPrimaryTimeseriesIdentifier());
-		ZoneOffset primaryZoneOffset = getZoneOffset(primaryDescription);
+		ZoneOffset primaryZoneOffset = TimeSeriesUtils.getZoneOffset(primaryDescription);
 		String primaryStationId = primaryDescription.getLocationIdentifier();
 		report.setPrimaryTsMetadata(primaryDescription);
 		
@@ -85,7 +86,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		List<Processor> upchainProcessors = getProcessors(true, requestParameters, primaryZoneOffset);
 
 		//Primary TS Data
-		report.setPrimaryTsData(getCorrectedData(requestParameters, primaryZoneOffset, upchainProcessors, isDailyTimeSeries(primaryDescription)));
+		report.setPrimaryTsData(getCorrectedData(requestParameters, primaryZoneOffset, upchainProcessors, TimeSeriesUtils.isDailyTimeSeries(primaryDescription)));
 
 		//Rating Data
 		String primaryRatingModel = getRatingModel(upchainProcessors);
@@ -245,31 +246,5 @@ public class TimeSeriesSummaryReportBuilderService {
 		}
 		
 		return series;
-	}
-
-	protected ZoneOffset getZoneOffset(TimeSeriesDescription timeSeriesDescription) {
-		// Default to UTC
-		ZoneOffset zoneOffset = ZoneOffset.UTC;
-		Double utcOffset = null;
-
-		try {
-			utcOffset = timeSeriesDescription == null ? 0 : timeSeriesDescription.getUtcOffset();
-			Double minutes = utcOffset % 1;
-			if (minutes != 0) {
-				Double hours = utcOffset - minutes;
-				zoneOffset = ZoneOffset.ofHoursMinutes(hours.intValue(), (int) Math.round(minutes * 100));
-			} else {
-				zoneOffset = ZoneOffset.ofHours(utcOffset.intValue());
-			}
-		} catch (Exception e) {
-			LOG.info("Error converting utcOffset({}) to ZoneOffset", utcOffset);
-		}
-
-		return zoneOffset;
-	}
-
-	protected boolean isDailyTimeSeries(TimeSeriesDescription timeSeriesDescription) {
-		return timeSeriesDescription != null
-				&& "Daily".equalsIgnoreCase(timeSeriesDescription.getComputationPeriodIdentifier());
 	}
 }
