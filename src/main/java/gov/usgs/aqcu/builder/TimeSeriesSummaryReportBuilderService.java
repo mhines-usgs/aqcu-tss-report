@@ -189,7 +189,7 @@ public class TimeSeriesSummaryReportBuilderService {
 	protected TimeSeriesSummaryReportMetadata getReportMetadata(TimeSeriesSummaryRequestParameters requestParameters, ZoneOffset primaryZoneOffset, String stationId, String primaryParameter, Double utcOffset, List<Grade> gradeList, List<Qualifier> qualifierList) {
 		TimeSeriesSummaryReportMetadata metadata = new TimeSeriesSummaryReportMetadata();
 		metadata.setTitle(REPORT_TITLE);
-		metadata.setRequestParameters(requestParameters, primaryZoneOffset);
+		metadata.setRequestParameters(requestParameters);
 		metadata.setStationId(stationId);
 		metadata.setStationName(locationDescriptionService.getByLocationIdentifier(stationId).getName());
 		metadata.setTimezone(utcOffset);

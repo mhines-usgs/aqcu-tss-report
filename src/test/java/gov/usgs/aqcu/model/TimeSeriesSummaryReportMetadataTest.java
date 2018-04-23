@@ -23,7 +23,7 @@ public class TimeSeriesSummaryReportMetadataTest {
     @Test
 	public void setRequestParametersTest() {
 	   TimeSeriesSummaryReportMetadata metadata = new TimeSeriesSummaryReportMetadata();
-	   metadata.setRequestParameters(params, ZoneOffset.UTC);
+	   metadata.setRequestParameters(params);
 
 	   assertEquals(metadata.getRequestParameters(), params);
 	   assertEquals(metadata.getStartDate(), params.getStartInstant(ZoneOffset.UTC));
