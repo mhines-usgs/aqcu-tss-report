@@ -51,7 +51,7 @@ public class ReportUrlBuilderTest {
 
 	@Test
 	public void emptyParamsTest() {
-		String expectedUrl = aqcuWebserviceUrl + "/service/reports/?&primaryTimeseriesIdentifier=&stationId=";
+		String expectedUrl = aqcuWebserviceUrl + "/service/reports/?&primaryTimeseriesIdentifier=&station=";
 		String url = reportUrlBuilderService.buildAqcuReportUrl("", "", new RequestParameters(), "");
 		assertEquals(0, expectedUrl.compareTo(url));
 	}
@@ -62,7 +62,7 @@ public class ReportUrlBuilderTest {
 		params.setPrimaryTimeseriesIdentifier("test-id");
 		params.setStartDate(LocalDate.parse("2017-01-01"));
 		params.setEndDate(LocalDate.parse("2017-02-01"));
-		String expectedUrl = aqcuWebserviceUrl + "/service/reports/test-type?" + params.getAsQueryString(null, true) + "&stationId=test-station";
+		String expectedUrl = aqcuWebserviceUrl + "/service/reports/test-type?" + params.getAsQueryString(null, true) + "&station=test-station";
 		String url = reportUrlBuilderService.buildAqcuReportUrl("test-type", "test-station", params, null);
 		assertEquals(0, expectedUrl.compareTo(url));
 	}
@@ -73,7 +73,7 @@ public class ReportUrlBuilderTest {
 		params.setPrimaryTimeseriesIdentifier("test-id");
 		params.setStartDate(LocalDate.parse("2017-01-01"));
 		params.setEndDate(LocalDate.parse("2017-02-01"));
-		String expectedUrl = aqcuWebserviceUrl + "/service/reports/test-type?" + params.getAsQueryString("test-override", true) + "&stationId=test-station";
+		String expectedUrl = aqcuWebserviceUrl + "/service/reports/test-type?" + params.getAsQueryString("test-override", true) + "&station=test-station";
 		String url = reportUrlBuilderService.buildAqcuReportUrl("test-type", "test-station", params, "test-override");
 		assertEquals(0, expectedUrl.compareTo(url));
 	}
@@ -84,9 +84,9 @@ public class ReportUrlBuilderTest {
 		params.setPrimaryTimeseriesIdentifier("test-id");
 		params.setStartDate(LocalDate.parse("2017-01-01"));
 		params.setEndDate(LocalDate.parse("2017-02-01"));
-		String expectedUrl1 = aqcuWebserviceUrl + "/service/reports/test-type?" + params.getAsQueryString("id1", true) + "&stationId=test-station";
-		String expectedUrl2 = aqcuWebserviceUrl + "/service/reports/test-type?" + params.getAsQueryString("id2", true) + "&stationId=test-station";
-		String expectedUrl3 = aqcuWebserviceUrl + "/service/reports/test-type?" + params.getAsQueryString("id3", true) + "&stationId=test-station";
+		String expectedUrl1 = aqcuWebserviceUrl + "/service/reports/test-type?" + params.getAsQueryString("id1", true) + "&station=test-station";
+		String expectedUrl2 = aqcuWebserviceUrl + "/service/reports/test-type?" + params.getAsQueryString("id2", true) + "&station=test-station";
+		String expectedUrl3 = aqcuWebserviceUrl + "/service/reports/test-type?" + params.getAsQueryString("id3", true) + "&station=test-station";
 		Map<String,String> urlMap = reportUrlBuilderService.buildAqcuReportUrlMapByUnqiueIdList("test-type", "test-station", params, Arrays.asList("id1", "id2", "id3"));
 
 		assertEquals(urlMap.size(), 3);

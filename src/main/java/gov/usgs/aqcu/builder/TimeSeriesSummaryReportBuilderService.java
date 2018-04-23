@@ -106,7 +106,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		//Report Metadata
 		report.setReportMetadata(getReportMetadata(requestParameters,
 			report.getPrimaryTsMetadata().getLocationIdentifier(), 
-			report.getPrimaryTsMetadata().getParameter(),
+			report.getPrimaryTsMetadata().getIdentifier(),
 			report.getPrimaryTsMetadata().getUtcOffset(),
 			report.getPrimaryTsData().getGrades(), 
 			report.getPrimaryTsData().getQualifiers()
