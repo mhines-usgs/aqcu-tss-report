@@ -104,7 +104,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		report.setCorrections(getCorrectionsData(requestParameters, primaryZoneOffset, primaryStationId));
 
 		//Report Metadata
-		report.setReportMetadata(getReportMetadata(requestParameters, primaryZoneOffset,
+		report.setReportMetadata(getReportMetadata(requestParameters,
 			report.getPrimaryTsMetadata().getLocationIdentifier(), 
 			report.getPrimaryTsMetadata().getParameter(),
 			report.getPrimaryTsMetadata().getUtcOffset(),
@@ -186,10 +186,10 @@ public class TimeSeriesSummaryReportBuilderService {
 		return new TimeSeriesSummaryCorrectedData(dataResponse, upchainProcessorList, gapList);
 	}
 
-	protected TimeSeriesSummaryReportMetadata getReportMetadata(TimeSeriesSummaryRequestParameters requestParameters, ZoneOffset primaryZoneOffset, String stationId, String primaryParameter, Double utcOffset, List<Grade> gradeList, List<Qualifier> qualifierList) {
+	protected TimeSeriesSummaryReportMetadata getReportMetadata(TimeSeriesSummaryRequestParameters requestParameters, String stationId, String primaryParameter, Double utcOffset, List<Grade> gradeList, List<Qualifier> qualifierList) {
 		TimeSeriesSummaryReportMetadata metadata = new TimeSeriesSummaryReportMetadata();
 		metadata.setTitle(REPORT_TITLE);
-		metadata.setRequestParameters(requestParameters, primaryZoneOffset);
+		metadata.setRequestParameters(requestParameters);
 		metadata.setStationId(stationId);
 		metadata.setStationName(locationDescriptionService.getByLocationIdentifier(stationId).getName());
 		metadata.setTimezone(utcOffset);

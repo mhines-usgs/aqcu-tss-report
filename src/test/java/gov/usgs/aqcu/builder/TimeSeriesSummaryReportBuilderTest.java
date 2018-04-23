@@ -128,7 +128,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		//Metadata
 		metadata = new TimeSeriesSummaryReportMetadata();
 		metadata.setPrimaryParameter(primaryDesc.getParameter());
-		metadata.setRequestParameters(requestParams, ZoneOffset.UTC);
+		metadata.setRequestParameters(requestParams);
 		metadata.setStationId(primaryDesc.getLocationIdentifier());
 		metadata.setStationName(primaryLoc.getName());
 		metadata.setTimezone(primaryDesc.getUtcOffset());

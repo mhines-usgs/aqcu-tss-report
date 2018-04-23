@@ -43,10 +43,11 @@ public class TimeSeriesSummaryReportMetadata extends ReportMetadata {
 		primaryParameter = val;
 	}
 	
-	public void setRequestParameters(TimeSeriesSummaryRequestParameters val, ZoneOffset timezone) {
+	public void setRequestParameters(TimeSeriesSummaryRequestParameters val) {
 		requestParameters = val;
-		setStartDate(val.getStartInstant(timezone));
-		setEndDate(val.getEndInstant(timezone));
+		//Report Period displayed should be exactly as recieved, so get as UTC
+		setStartDate(val.getStartInstant(ZoneOffset.UTC));
+		setEndDate(val.getEndInstant(ZoneOffset.UTC));
 		setPrimaryTimeSeriesIdentifier(val.getPrimaryTimeseriesIdentifier());
 	}
 
