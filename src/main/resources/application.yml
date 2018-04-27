@@ -11,6 +11,10 @@ aqcu:
   reports:
     webservice: ${aqcuReportsWebserviceUrl}
 
+javaToR:
+  service:
+    endpoint: ${javaToRServiceEndpoint}
+
 aquarius:
   service:
     endpoint: ${aquariusServiceEndpoint}
@@ -25,11 +29,6 @@ security:
 management:
   security:
     enabled: false
-
-javaToR:
-  ribbon:
-    listOfServers: ${javaToRServerList}
-    IsSecure: ${javaToRIsSecure:true}
 
 eureka:
   client:
