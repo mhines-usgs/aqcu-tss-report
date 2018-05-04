@@ -9,3 +9,5 @@ aquarius:
     endpoint: "https://test-aquarius.gov/"
     user: "test"
     password: "test"
+    retries:
+      unauthorized: ${aquariusUnauthorizedRetires:3}
