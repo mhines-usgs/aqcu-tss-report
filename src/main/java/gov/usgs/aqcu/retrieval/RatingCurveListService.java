@@ -1,10 +1,13 @@
 package gov.usgs.aqcu.retrieval;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.time.Instant;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -19,6 +22,8 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Rati
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.PeriodOfApplicability;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingShift;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import gov.usgs.aqcu.util.AqcuTimeUtils;
 
@@ -47,22 +52,23 @@ public class RatingCurveListService {
 
 	public List<RatingCurve> getAqcuFilteredRatingCurves(List<RatingCurve> responseCurves, Instant startDate, Instant endDate) {
 		Set<RatingCurve> filteredCurves = new HashSet<>();
-		List<ImmutablePair<Integer,PeriodOfApplicability>> fullPeriodList = new ArrayList<>();
-		List<ImmutablePair<Integer,PeriodOfApplicability>> filteredPeriodList = new ArrayList<>();
+		Map<Integer, List<PeriodOfApplicability>> fullPeriodMap = new HashMap<>();
+		Map<Integer, List<PeriodOfApplicability>> filteredPeriodMap;
 
 		//Get Full List of Curve Periods
 		for(int i = 0; i < responseCurves.size(); i++) {
-			for(PeriodOfApplicability period : responseCurves.get(i).getPeriodsOfApplicability()) {
-				fullPeriodList.add(new ImmutablePair<Integer,PeriodOfApplicability>(i, period));
-			}
+			fullPeriodMap.put(i, responseCurves.get(i).getPeriodsOfApplicability());
 		}
 
 		//Filter Full Period List
-		filteredPeriodList = getRatingPeriodsWithinReportRange(fullPeriodList, startDate, endDate);
+		filteredPeriodMap = getRatingCurvePeriodsWithinReportRange(fullPeriodMap, startDate, endDate);
 
-		//Build Filtered Curve List from Filtered Period List
-		for(ImmutablePair<Integer,PeriodOfApplicability> pair : filteredPeriodList) {
-			filteredCurves.add(responseCurves.get(pair.getKey()));
+		//Build Filtered Curve List from Filtered Period Map
+		for(Integer curveIndex : filteredPeriodMap.keySet()) {
+			//Clone the curve
+			RatingCurve curve = cloneCurve(responseCurves.get(curveIndex));
+			curve.setPeriodsOfApplicability(new ArrayList<>(filteredPeriodMap.get(curveIndex)));
+			filteredCurves.add(curve);
 		}
 
 		return new ArrayList<>(filteredCurves);
@@ -94,8 +100,36 @@ public class RatingCurveListService {
 		return filteredShifts;
 	}
 
-	protected List<ImmutablePair<Integer,PeriodOfApplicability>> getRatingPeriodsWithinReportRange(List<ImmutablePair<Integer,PeriodOfApplicability>> pairList, Instant startDate, Instant endDate) {
-		List<ImmutablePair<Integer,PeriodOfApplicability>> includePairs = new ArrayList<>();
+	protected Map<Integer, List<PeriodOfApplicability>> getRatingCurvePeriodsWithinReportRange(Map<Integer, List<PeriodOfApplicability>> fullPeriodMap, Instant startDate, Instant endDate) {
+		Map<Integer, List<PeriodOfApplicability>> includePeriodMap = new HashMap<>();
+		List<ImmutablePair<Integer, PeriodOfApplicability>> includePairs;
+		List<ImmutablePair<Integer, PeriodOfApplicability>> pairList = new ArrayList<>();
+
+		//Convert Period Map to Pair List
+		for(Map.Entry<Integer, List<PeriodOfApplicability>> entry : fullPeriodMap.entrySet()) {
+			for(PeriodOfApplicability period : entry.getValue()) {
+				pairList.add(new ImmutablePair<Integer,PeriodOfApplicability>(entry.getKey(), period));
+			}
+		}
+
+		includePairs = getRatingPeriodsWithinReportRange(pairList, startDate, endDate);
+
+		//Convert Included Pair List to Map
+		for(ImmutablePair<Integer,PeriodOfApplicability> pair : includePairs) {
+			if(includePeriodMap.get(pair.getKey()) == null) {
+				includePeriodMap.put(pair.getKey(), new ArrayList<>(Arrays.asList(pair.getValue())));
+			} else {
+				List<PeriodOfApplicability> mapList = includePeriodMap.get(pair.getKey());
+				mapList.add(pair.getValue());
+				includePeriodMap.put(pair.getKey(), mapList);
+			}
+		}
+
+		return includePeriodMap;
+	}
+
+	protected List<ImmutablePair<Integer, PeriodOfApplicability>> getRatingPeriodsWithinReportRange(List<ImmutablePair<Integer, PeriodOfApplicability>> pairList, Instant startDate, Instant endDate) {
+		List<ImmutablePair<Integer, PeriodOfApplicability>> includePairs = new ArrayList<>();
 
 		PeriodOfApplicability reportPeriod = new PeriodOfApplicability();
 		reportPeriod.setStartTime(startDate);
@@ -157,5 +191,10 @@ public class RatingCurveListService {
 		}
 
 		return effectivePeriod;
+	}
+
+	protected RatingCurve cloneCurve(RatingCurve origCurve) {
+		Gson cloneGson = new GsonBuilder().create();
+		return cloneGson.fromJson(cloneGson.toJson(origCurve), RatingCurve.class);
 	}
 }
