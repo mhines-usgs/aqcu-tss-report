@@ -10,4 +10,4 @@ aquarius:
     user: "test"
     password: "test"
     retries:
-      unauthorized: ${aquariusUnauthorizedRetires:3}
+      unauthorized: 1

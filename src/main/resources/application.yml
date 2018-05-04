@@ -20,6 +20,8 @@ aquarius:
     endpoint: ${aquariusServiceEndpoint}
     user: ${aquariusServiceUser}
     password: ${aquariusServicePassword}
+    retries:
+      unauthorized: ${aquariusUnauthorizedRetires:3}
 
 security:
   require-ssl: true
