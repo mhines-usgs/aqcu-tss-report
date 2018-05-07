@@ -265,11 +265,6 @@ public class RatingCurveListServiceTest {
 	}
 
 	@Test
-	public void getRatingCurvePeriodsWithinReportRangeTest() {
-
-	}
-
-	@Test
 	public void getRatingPeriodsWithinReportRangeTestOrdered() {
 		ImmutablePair<Integer,PeriodOfApplicability> pa = new ImmutablePair<>(1, periodA);
 		ImmutablePair<Integer,PeriodOfApplicability> pb = new ImmutablePair<>(2, periodB);
