@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.junit.Before;
@@ -161,40 +162,56 @@ public class RatingCurveListServiceTest {
 		List<RatingCurve> raw = service.getRawResponse("rating-model", null, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-02-01T00:00:00Z")).getRatingCurves();
 		List<RatingCurve> filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-13T00:00:00Z"));
 		assertEquals(filtered.size(), 4);
-		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B, CURVE_C, CURVE_D));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_A.getId(), CURVE_B.getId(), CURVE_C.getId(), CURVE_D.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodA, periodB, periodC, periodD, periodE, periodG, periodH));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-12T00:00:00Z"));
 		assertEquals(filtered.size(), 3);
-		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B, CURVE_C));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_A.getId(), CURVE_B.getId(), CURVE_C.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodA, periodB, periodC, periodD, periodE, periodG));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-11T00:00:00Z"));
 		assertEquals(filtered.size(), 3);
-		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B, CURVE_C));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_A.getId(), CURVE_B.getId(), CURVE_C.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodA, periodB, periodC, periodD, periodE, periodG));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-07T00:00:00Z"));
 		assertEquals(filtered.size(), 2);
-		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_A.getId(), CURVE_B.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodA, periodB, periodC, periodD));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-05T00:00:00Z"));
 		assertEquals(filtered.size(), 2);
-		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_A.getId(), CURVE_B.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodA, periodB, periodC, periodD));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-04T00:00:00Z"));
 		assertEquals(filtered.size(), 2);
-		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_A.getId(), CURVE_B.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodA, periodB, periodC));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-03T00:00:00Z"));
 		assertEquals(filtered.size(), 2);
-		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_A.getId(), CURVE_B.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodA, periodB, periodC));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-01T00:00:00Z"), Instant.parse("2017-01-02T00:00:00Z"));
 		assertEquals(filtered.size(), 1);
-		assertThat(filtered, containsInAnyOrder(CURVE_A));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_A.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodA));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-04T00:00:00Z"), Instant.parse("2017-01-06T00:00:00Z"));
 		assertEquals(filtered.size(), 2);
-		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_B));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_A.getId(), CURVE_B.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodB, periodC, periodD));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-05T00:00:00Z"), Instant.parse("2017-01-06T00:00:00Z"));
 		assertEquals(filtered.size(), 1);
-		assertThat(filtered, containsInAnyOrder(CURVE_B));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_B.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodC, periodD));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-07T00:00:00Z"), Instant.parse("2017-01-13T00:00:00Z"));
 		assertEquals(filtered.size(), 3);
-		assertThat(filtered, containsInAnyOrder(CURVE_A, CURVE_C, CURVE_D));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_A.getId(), CURVE_C.getId(), CURVE_D.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodE, periodG, periodH));
 		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-12T00:00:00Z"), Instant.parse("2017-01-13T00:00:00Z"));
 		assertEquals(filtered.size(), 1);
-		assertThat(filtered, containsInAnyOrder(CURVE_D));
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_D.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodH));
+		filtered = service.getAqcuFilteredRatingCurves(raw, Instant.parse("2017-01-08T00:00:00Z"), Instant.parse("2017-01-09T00:00:00Z"));
+		assertEquals(filtered.size(), 2);
+		assertThat(getIdList(filtered), containsInAnyOrder(CURVE_A.getId(), CURVE_C.getId()));
+		assertThat(getPeriodList(filtered), containsInAnyOrder(periodE, periodG));
 	}
 
 	@Test
@@ -390,5 +407,27 @@ public class RatingCurveListServiceTest {
 		assertEquals(ef2.getEndTime(), periodB.getEndTime());
 		assertEquals(ef3.getEndTime(), periodA.getEndTime());
 		assertEquals(ef4.getEndTime(), periodA.getStartTime());
+	}
+
+	List<String> getIdList(List<RatingCurve> curves) {
+		return curves.stream().map(c -> c.getId()).collect(Collectors.toList());
+	}
+
+	@Test
+	public void getIdListTest() {
+		List<String> idList = getIdList(CURVE_LIST);
+		assertEquals(idList.size(), 4);
+		assertThat(idList, containsInAnyOrder(CURVE_A.getId(), CURVE_B.getId(), CURVE_C.getId(), CURVE_D.getId())); 
+	}
+
+	List<PeriodOfApplicability> getPeriodList(List<RatingCurve> curves) {
+		return curves.stream().flatMap(c -> c.getPeriodsOfApplicability().stream()).collect(Collectors.toList());
+	}
+	
+	@Test
+	public void getPeriodListTest() {
+		List<PeriodOfApplicability> periodList = getPeriodList(CURVE_LIST);
+		assertEquals(periodList.size(), 7);
+		assertThat(periodList, containsInAnyOrder(periodA, periodB, periodC, periodD, periodE, periodG, periodH)); 
 	}
 }
