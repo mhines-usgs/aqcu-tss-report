@@ -49,6 +49,9 @@ hystrix:
           strategy: THREAD
           thread:
             timeoutInMilliseconds: ${hystrixThreadTimeout}
+  threadpool:
+    default:
+      maxQueueSize: -1
 
 spring:
   profiles:
