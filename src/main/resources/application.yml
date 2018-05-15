@@ -52,6 +52,7 @@ hystrix:
   threadpool:
     default:
       maxQueueSize: ${hystrixMaxQueueSize:200}
+      queueSizeRejectionThreshold: ${hystrixMaxQueueSize:200}
 
 spring:
   profiles:
