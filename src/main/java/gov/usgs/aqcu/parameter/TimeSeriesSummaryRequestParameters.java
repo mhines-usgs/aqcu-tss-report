@@ -3,7 +3,7 @@ package gov.usgs.aqcu.parameter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TimeSeriesSummaryRequestParameters extends RequestParameters {
+public class TimeSeriesSummaryRequestParameters extends ReportRequestParameters {
 
 	private List<String> excludedCorrections;
 

@@ -24,7 +24,7 @@ public class TimeSeriesSummaryRequestParametersTest {
 		params.setEndDate(reportEndDate);
 		params.setStartDate(reportStartDate);
 		params.setPrimaryTimeseriesIdentifier(primaryIdentifier);
-        params.determineReportPeriod();
+		params.determineRequestPeriod();
         params.setExcludedCorrections(excludedCorrs);
         String expected = "startDate=2018-03-16&endDate=2018-03-16&primaryTimeseriesIdentifier=test-identifier&excludedCorrections=corr1,corr2,corr3";
 		assertEquals(0, params.getAsQueryString(null, false).compareTo(expected));

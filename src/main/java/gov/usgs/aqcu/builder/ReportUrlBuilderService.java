@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
 
-import gov.usgs.aqcu.parameter.RequestParameters;
+import gov.usgs.aqcu.parameter.ReportRequestParameters;
 
 import org.springframework.beans.factory.annotation.Value;
 
@@ -22,7 +22,7 @@ public class ReportUrlBuilderService {
 	private final String SERVICE_ENDPOINT = "/service";
 	private final String REPORTS_ENDPOINT = "/reports";
 
-	public String buildAqcuReportUrl(String reportType, String stationId, RequestParameters requestParams, String overrideIdentifier) {
+	public String buildAqcuReportUrl(String reportType, String stationId, ReportRequestParameters requestParams, String overrideIdentifier) {
 		String reportUrl = aqcuWebserviceUrl;
 		//Remove possible trailing slash from the base URL
 		if(reportUrl.endsWith("/")){
@@ -36,7 +36,7 @@ public class ReportUrlBuilderService {
 		return reportUrl;
 	}
 
-	public Map<String,String> buildAqcuReportUrlMapByUnqiueIdList(String reportType, String stationId, RequestParameters requestParams, List<String> timeseriesIdentifiers) {
+	public Map<String,String> buildAqcuReportUrlMapByUnqiueIdList(String reportType, String stationId, ReportRequestParameters requestParams, List<String> timeseriesIdentifiers) {
 		Map<String,String> urlMap = new HashMap<>();
 
 		for(String identifier : timeseriesIdentifiers) {
