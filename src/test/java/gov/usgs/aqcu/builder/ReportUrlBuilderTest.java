@@ -9,7 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import gov.usgs.aqcu.parameter.RequestParameters;
+import gov.usgs.aqcu.parameter.ReportRequestParameters;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -52,13 +52,13 @@ public class ReportUrlBuilderTest {
 	@Test
 	public void emptyParamsTest() {
 		String expectedUrl = aqcuWebserviceUrl + "/service/reports/?&primaryTimeseriesIdentifier=&station=";
-		String url = reportUrlBuilderService.buildAqcuReportUrl("", "", new RequestParameters(), "");
+		String url = reportUrlBuilderService.buildAqcuReportUrl("", "", new ReportRequestParameters(), "");
 		assertEquals(0, expectedUrl.compareTo(url));
 	}
 
 	@Test
 	public void noOverrideTest() {
-		RequestParameters params = new RequestParameters();
+		ReportRequestParameters params = new ReportRequestParameters();
 		params.setPrimaryTimeseriesIdentifier("test-id");
 		params.setStartDate(LocalDate.parse("2017-01-01"));
 		params.setEndDate(LocalDate.parse("2017-02-01"));
@@ -69,7 +69,7 @@ public class ReportUrlBuilderTest {
 
 	@Test
 	public void overrideTest() {
-		RequestParameters params = new RequestParameters();
+		ReportRequestParameters params = new ReportRequestParameters();
 		params.setPrimaryTimeseriesIdentifier("test-id");
 		params.setStartDate(LocalDate.parse("2017-01-01"));
 		params.setEndDate(LocalDate.parse("2017-02-01"));
@@ -80,7 +80,7 @@ public class ReportUrlBuilderTest {
 
 	@Test
 	public void mapByUniqueIdListTest() {
-		RequestParameters params = new RequestParameters();
+		ReportRequestParameters params = new ReportRequestParameters();
 		params.setPrimaryTimeseriesIdentifier("test-id");
 		params.setStartDate(LocalDate.parse("2017-01-01"));
 		params.setEndDate(LocalDate.parse("2017-02-01"));
