@@ -38,7 +38,7 @@ import gov.usgs.aqcu.retrieval.CorrectionListService;
 import gov.usgs.aqcu.retrieval.CorrectionListServiceTest;
 import gov.usgs.aqcu.retrieval.DownchainProcessorListService;
 import gov.usgs.aqcu.retrieval.GradeLookupService;
-import gov.usgs.aqcu.retrieval.LocationDescriptionService;
+import gov.usgs.aqcu.retrieval.LocationDescriptionListService;
 import gov.usgs.aqcu.retrieval.QualifierLookupService;
 import gov.usgs.aqcu.retrieval.RatingCurveListService;
 import gov.usgs.aqcu.retrieval.RatingCurveListServiceTest;
@@ -87,7 +87,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 	@MockBean
 	private RatingCurveListService ratingService;
 	@MockBean
-	private LocationDescriptionService locService;
+	private LocationDescriptionListService locService;
 	
 	@Autowired
 	ReportUrlBuilderService reportUrlBuilderService;

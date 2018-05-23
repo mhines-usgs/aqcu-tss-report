@@ -39,7 +39,7 @@ public class TimeSeriesSummaryReportBuilderService {
 	private ReportUrlBuilderService reportUrlBuilderService;
 	private GradeLookupService gradeLookupService;
 	private QualifierLookupService qualifierLookupService;
-	private LocationDescriptionService locationDescriptionService;
+	private LocationDescriptionListService locationDescriptionListService;
 	private TimeSeriesDescriptionListService timeSeriesDescriptionListService;
 	private TimeSeriesDataCorrectedService timeSeriesDataCorrectedService;
 	private RatingCurveListService ratingCurveListService;
@@ -53,7 +53,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		ReportUrlBuilderService reportUrlBuilderService,
 		GradeLookupService gradeLookupService, 
 		QualifierLookupService qualifierLookupService,
-		LocationDescriptionService locationDescriptionService,
+		LocationDescriptionListService locationDescriptionListService,
 		TimeSeriesDescriptionListService timeSeriesDescriptionListService,
 		TimeSeriesDataCorrectedService timeSeriesDataCorrectedService,
 		UpchainProcessorListService upchainProcessorListService,
@@ -69,7 +69,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		this.reportUrlBuilderService = reportUrlBuilderService;
 		this.gradeLookupService = gradeLookupService;
 		this.qualifierLookupService = qualifierLookupService;
-		this.locationDescriptionService = locationDescriptionService;
+		this.locationDescriptionListService = locationDescriptionListService;
 		this.timeSeriesDescriptionListService = timeSeriesDescriptionListService;
 	}
 
@@ -191,7 +191,7 @@ public class TimeSeriesSummaryReportBuilderService {
 		metadata.setTitle(REPORT_TITLE);
 		metadata.setRequestParameters(requestParameters);
 		metadata.setStationId(stationId);
-		metadata.setStationName(locationDescriptionService.getByLocationIdentifier(stationId).getName());
+		metadata.setStationName(locationDescriptionListService.getByLocationIdentifier(stationId).getName());
 		metadata.setTimezone(utcOffset);
 		metadata.setPrimaryParameter(primaryParameter);
 
