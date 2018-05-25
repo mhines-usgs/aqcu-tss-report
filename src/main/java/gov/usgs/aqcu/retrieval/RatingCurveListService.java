@@ -133,16 +133,6 @@ public class RatingCurveListService {
 			if(AqcuTimeUtils.doPeriodsOverlap(effectiveRatingPeriod, reportPeriod)) {
 				//Include if Rating Period overlaps Report Period
 				includePairs.add(pair);
-
-				//If this is the first included Rating Period mark the first rating as having been found
-				if(!foundFirstRating) {
-					foundFirstRating = true;
-
-					// If the previous Period (first Period prior to the Report Start date) is open-ended then include it
-					if(prevPair != null && AqcuTimeUtils.isOpenEndedTime(prevPair.getValue().getEndTime())) {
-						includePairs.add(prevPair);
-					}
-				}
 			} else if(pair.getValue().getStartTime().compareTo(endDate) >= 0) {
 				//If this Rating Period is after the Report End Date then this is the last period to process
 				//If the previous Period was inlcuded and open-ended then also include this Period
