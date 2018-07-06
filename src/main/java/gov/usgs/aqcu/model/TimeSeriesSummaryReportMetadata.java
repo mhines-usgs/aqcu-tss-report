@@ -12,6 +12,7 @@ public class TimeSeriesSummaryReportMetadata extends ReportMetadata {
 	private TimeSeriesSummaryRequestParameters requestParameters;
 	private String primaryParameter;
 	private String primaryTimeSeriesIdentifier;
+	private String requestingUser;
 	private Map<String, GradeMetadata> gradeMetadata;
 
 	public TimeSeriesSummaryReportMetadata() {
@@ -25,6 +26,10 @@ public class TimeSeriesSummaryReportMetadata extends ReportMetadata {
 	
 	public String getPrimaryParameter() {
 		return primaryParameter;
+	}
+
+	public String getRequestingUser() {
+		return requestingUser;
 	}
 
 	public Map<String, GradeMetadata> getGradeMetadata() {
@@ -41,6 +46,10 @@ public class TimeSeriesSummaryReportMetadata extends ReportMetadata {
 
 	public void setPrimaryParameter(String val) {
 		primaryParameter = val;
+	}
+
+	public void setRequestingUser(String val) {
+		requestingUser = val;
 	}
 	
 	public void setRequestParameters(TimeSeriesSummaryRequestParameters val) {

@@ -188,6 +188,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		TimeSeriesSummaryReport report = service.buildReport(requestParams, REQUESTING_USER);
 		assertTrue(report != null);
 		assertTrue(report.getReportMetadata() != null);
+		assertEquals(report.getReportMetadata().getRequestingUser(), REQUESTING_USER);
 		assertEquals(report.getReportMetadata().getPrimaryTimeSeriesIdentifier(), metadata.getPrimaryTimeSeriesIdentifier());
 		assertEquals(report.getReportMetadata().getRequestParameters(), metadata.getRequestParameters());
 		assertEquals(report.getReportMetadata().getStartDate(), metadata.getStartDate());
@@ -251,6 +252,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		assertTrue(report != null);
 		assertTrue(report.getReportMetadata() != null);
 		assertEquals(report.getReportMetadata().getPrimaryTimeSeriesIdentifier(), metadata.getPrimaryTimeSeriesIdentifier());
+		assertEquals(report.getReportMetadata().getRequestingUser(), REQUESTING_USER);
 		assertEquals(report.getReportMetadata().getRequestParameters(), metadata.getRequestParameters());
 		assertEquals(report.getReportMetadata().getStartDate(), metadata.getStartDate());
 		assertEquals(report.getReportMetadata().getEndDate(), metadata.getEndDate());		
@@ -305,9 +307,10 @@ public class TimeSeriesSummaryReportBuilderTest {
 			.willReturn(new HashMap<>());
 		given(locService.getByLocationIdentifier(metadata.getStationId()))
 			.willReturn(primaryLoc);
-		
-		TimeSeriesSummaryReportMetadata newMetadata = service.getReportMetadata(requestParams, primaryLoc.getIdentifier(), primaryDesc.getIdentifier(), primaryDesc.getUtcOffset(), new ArrayList<>(), new ArrayList<>());
+
+		TimeSeriesSummaryReportMetadata newMetadata = service.getReportMetadata(requestParams, REQUESTING_USER, primaryLoc.getIdentifier(), primaryDesc.getIdentifier(), primaryDesc.getUtcOffset(), new ArrayList<>(), new ArrayList<>());
 		assertTrue(newMetadata != null);
+		assertEquals(newMetadata.getRequestingUser(), REQUESTING_USER);
 		assertEquals(newMetadata.getPrimaryTimeSeriesIdentifier(), metadata.getPrimaryTimeSeriesIdentifier());
 		assertEquals(newMetadata.getRequestParameters(), metadata.getRequestParameters());
 		assertEquals(newMetadata.getStartDate(), metadata.getStartDate());
