@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 import gov.usgs.aqcu.client.JavaToRClient;
@@ -21,6 +24,8 @@ import gov.usgs.aqcu.parameter.TimeSeriesSummaryRequestParameters;
 @RestController
 @RequestMapping("/timeseriessummary")
 public class Controller {
+	public static final String UNKNOWN_USERNAME = "unknown";
+
 	private static final Logger LOG = LoggerFactory.getLogger(Controller.class);
 	private Gson gson;
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
@@ -51,7 +56,11 @@ public class Controller {
 	}
 
 	String getRequestingUser() {
-		//Pull Requesting User From SecurityContext
-		return "testUser";
+		String username = UNKNOWN_USERNAME;
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (null != authentication && !(authentication instanceof AnonymousAuthenticationToken)) {
+			username= authentication.getName();
+		}
+		return username;
 	}
 }

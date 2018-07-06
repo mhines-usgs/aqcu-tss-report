@@ -3,11 +3,10 @@ package gov.usgs.aqcu.builder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import gov.usgs.aqcu.parameter.ReportRequestParameters;
 
@@ -18,22 +17,25 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Map;
 
-@SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class ReportUrlBuilderTest {
 	@Value("${aqcu.reports.webservice}")
 	String aqcuWebserviceUrl;
 
-	@Autowired
 	ReportUrlBuilderService reportUrlBuilderService;
 
 	@Before
 	public void setup() {
+		reportUrlBuilderService = new ReportUrlBuilderService();
+
 		//Remove possible trailing slash from base URL for comparisons
 		if(aqcuWebserviceUrl.endsWith("/")){
 			aqcuWebserviceUrl = aqcuWebserviceUrl.substring(0, aqcuWebserviceUrl.length()-1);
 		}
+
+		//Set Webservice URL
+		ReflectionTestUtils.setField(reportUrlBuilderService, "aqcuWebserviceUrl", aqcuWebserviceUrl);
 	}
 
 	@Test

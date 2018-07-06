@@ -24,6 +24,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import gov.usgs.aqcu.model.ExtendedCorrection;
 import gov.usgs.aqcu.model.TimeSeriesSummaryCorrectedData;
@@ -48,6 +49,7 @@ import gov.usgs.aqcu.retrieval.TimeSeriesDescriptionListService;
 import gov.usgs.aqcu.retrieval.TimeSeriesDescriptionListServiceTest;
 import gov.usgs.aqcu.retrieval.UpchainProcessorListService;
 import gov.usgs.aqcu.retrieval.UpchainProcessorListServiceTest;
+import gov.usgs.aqcu.util.AqcuGsonBuilderFactory;
 import gov.usgs.aqcu.retrieval.DownchainProcessorListServiceTest;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.ProcessorListServiceResponse;
@@ -60,8 +62,8 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Time
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDescription;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurveListServiceResponse;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
-@SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class TimeSeriesSummaryReportBuilderTest {
@@ -88,13 +90,10 @@ public class TimeSeriesSummaryReportBuilderTest {
 	private RatingCurveListService ratingService;
 	@MockBean
 	private LocationDescriptionListService locService;
-	
-	@Autowired
-	ReportUrlBuilderService reportUrlBuilderService;
-	@Autowired
-	Gson gson;
 
+	private Gson gson;
 	private DataGapListBuilderService gapService;
+	private ReportUrlBuilderService reportUrlBuilderService;
 
 	private TimeSeriesSummaryReportBuilderService service;
 	private final String REQUESTING_USER = "test-user";
@@ -114,9 +113,12 @@ public class TimeSeriesSummaryReportBuilderTest {
 
 	@Before
 	public void setup() {
-		//Builder Servies		
+		//Builder Servies
+		gson = AqcuGsonBuilderFactory.getConfiguredGsonBuilder().create();
+		reportUrlBuilderService = new ReportUrlBuilderService();
 		gapService = new DataGapListBuilderService();
 		service = new TimeSeriesSummaryReportBuilderService(gapService, reportUrlBuilderService, gradeService, qualService, locService, descService, tsDataService, upchainService, downchainService, ratingService, corrListService);
+		ReflectionTestUtils.setField(reportUrlBuilderService, "aqcuWebserviceUrl", aqcuWebserviceUrl);
 
 		//Request Parameters
 		requestParams = new TimeSeriesSummaryRequestParameters();

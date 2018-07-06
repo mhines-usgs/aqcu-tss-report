@@ -8,9 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
-
 import gov.usgs.aqcu.parameter.ReportRequestParameters;
-
 import org.springframework.beans.factory.annotation.Value;
 
 @Service

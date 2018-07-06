@@ -22,8 +22,8 @@ import gov.usgs.aqcu.builder.TimeSeriesSummaryReportBuilderService;
 import gov.usgs.aqcu.client.JavaToRClient;
 import gov.usgs.aqcu.model.TimeSeriesSummaryReport;
 import gov.usgs.aqcu.parameter.TimeSeriesSummaryRequestParameters;
+import gov.usgs.aqcu.util.AqcuGsonBuilderFactory;
 
-@SpringBootTest
 @RunWith(SpringRunner.class)
 @ActiveProfiles("test")
 public class ControllerTest {
@@ -31,7 +31,7 @@ public class ControllerTest {
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
 	@MockBean
 	private JavaToRClient client;
-	@Autowired
+
 	private Gson gson;
 	private Controller controller;
 	byte[] resultBytes;
@@ -39,7 +39,8 @@ public class ControllerTest {
 	TimeSeriesSummaryReport report;
 
 	@Before
-	public void setup() {		
+	public void setup() {
+		gson = AqcuGsonBuilderFactory.getConfiguredGsonBuilder().create();
 		report = new TimeSeriesSummaryReport();
 		controller = new Controller(reportBuilderService, client, gson);
 		resultBytes = gson.toJson(report).getBytes();
@@ -68,6 +69,7 @@ public class ControllerTest {
 
 	@Test
 	public void getRequestingUserTest() {
-
+		Controller c = new Controller(null, null, null);
+		assertEquals(Controller.UNKNOWN_USERNAME, c.getRequestingUser());
 	}
 }
