@@ -307,7 +307,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 			.willReturn(new HashMap<>());
 		given(locService.getByLocationIdentifier(metadata.getStationId()))
 			.willReturn(primaryLoc);
-			
+
 		TimeSeriesSummaryReportMetadata newMetadata = service.getReportMetadata(requestParams, REQUESTING_USER, primaryLoc.getIdentifier(), primaryDesc.getIdentifier(), primaryDesc.getUtcOffset(), new ArrayList<>(), new ArrayList<>());
 		assertTrue(newMetadata != null);
 		assertEquals(newMetadata.getRequestingUser(), REQUESTING_USER);
