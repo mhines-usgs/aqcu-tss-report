@@ -168,7 +168,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 			.willReturn(primaryDesc);
 		given(descService.getTimeSeriesDescriptionList(any(List.class)))
 			.willReturn(TimeSeriesDescriptionListServiceTest.DESC_LIST);
-		given(tsDataService.get(requestParams.getPrimaryTimeseriesIdentifier(), requestParams, false, false, ZoneOffset.UTC))
+		given(tsDataService.get(requestParams.getPrimaryTimeseriesIdentifier(), requestParams, ZoneOffset.UTC, false, false, true, null))
 			.willReturn(primaryData);
 		given(corrListService.getExtendedCorrectionList(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC), requestParams.getExcludedCorrections()))
 			.willReturn(extCorrs);
@@ -237,7 +237,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 			.willReturn(primaryDesc);
 		given(descService.getTimeSeriesDescriptionList(any(List.class)))
 			.willReturn(new ArrayList<>());
-		given(tsDataService.get(requestParams.getPrimaryTimeseriesIdentifier(), requestParams, false, false, ZoneOffset.UTC))
+			given(tsDataService.get(requestParams.getPrimaryTimeseriesIdentifier(), requestParams, ZoneOffset.UTC, false, false, true, null))
 			.willReturn(primaryData);
 		given(corrListService.getExtendedCorrectionList(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC), requestParams.getExcludedCorrections()))
 			.willReturn(extCorrs);
@@ -325,7 +325,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 
 	@Test
 	public void getCorrectedDataTest() {
-		given(tsDataService.get(requestParams.getPrimaryTimeseriesIdentifier(), requestParams, false, false, ZoneOffset.UTC))
+		given(tsDataService.get(requestParams.getPrimaryTimeseriesIdentifier(), requestParams, ZoneOffset.UTC, false, false, true, null))
 			.willReturn(primaryData);
 		TimeSeriesSummaryCorrectedData corrData = service.getCorrectedData(requestParams, ZoneOffset.UTC, upProcessors, false);
 		assertTrue(corrData != null);

@@ -170,9 +170,11 @@ public class TimeSeriesSummaryReportBuilderService {
 		TimeSeriesDataServiceResponse dataResponse = timeSeriesDataService.get(
 			requestParameters.getPrimaryTimeseriesIdentifier(), 
 			requestParameters,
-			false,
+			primaryZoneOffset,
 			isDVSeries,
-			primaryZoneOffset
+			false,
+			true,
+			null
 		);
 
 		//Calculate Data Gaps
