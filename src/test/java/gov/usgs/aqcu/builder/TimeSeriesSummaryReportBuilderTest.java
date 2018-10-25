@@ -41,8 +41,8 @@ import gov.usgs.aqcu.retrieval.LocationDescriptionListService;
 import gov.usgs.aqcu.retrieval.QualifierLookupService;
 import gov.usgs.aqcu.retrieval.RatingCurveListService;
 import gov.usgs.aqcu.retrieval.RatingCurveListServiceTest;
-import gov.usgs.aqcu.retrieval.TimeSeriesDataCorrectedService;
-import gov.usgs.aqcu.retrieval.TimeSeriesDataCorrectedServiceTest;
+import gov.usgs.aqcu.retrieval.TimeSeriesDataService;
+import gov.usgs.aqcu.retrieval.TimeSeriesDataServiceTest;
 import gov.usgs.aqcu.retrieval.TimeSeriesDescriptionListService;
 import gov.usgs.aqcu.retrieval.TimeSeriesDescriptionListServiceTest;
 import gov.usgs.aqcu.retrieval.UpchainProcessorListService;
@@ -76,7 +76,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 	@MockBean
 	private TimeSeriesDescriptionListService descService;
 	@MockBean
-	private TimeSeriesDataCorrectedService tsDataService;
+	private TimeSeriesDataService tsDataService;
 	@MockBean
 	private CorrectionListService corrListService;
 	@MockBean
@@ -101,7 +101,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 	TimeSeriesDescription primaryDesc = TimeSeriesDescriptionListServiceTest.DESC_1;
 	List<TimeSeriesDescription> upDescs = TimeSeriesDescriptionListServiceTest.DESC_LIST;
 	List<TimeSeriesDescription> downDescs = TimeSeriesDescriptionListServiceTest.DESC_LIST;
-	TimeSeriesDataServiceResponse primaryData = TimeSeriesDataCorrectedServiceTest.TS_DATA_RESPONSE;
+	TimeSeriesDataServiceResponse primaryData = TimeSeriesDataServiceTest.TS_DATA_RESPONSE;
 	List<ExtendedCorrection> extCorrs;
 	List<RatingCurve> ratingCurves;
 	List<RatingShift> rawShifts;
@@ -168,7 +168,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 			.willReturn(primaryDesc);
 		given(descService.getTimeSeriesDescriptionList(any(List.class)))
 			.willReturn(TimeSeriesDescriptionListServiceTest.DESC_LIST);
-		given(tsDataService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
+		given(tsDataService.get(requestParams.getPrimaryTimeseriesIdentifier(), requestParams, ZoneOffset.UTC, false, false, true, null))
 			.willReturn(primaryData);
 		given(corrListService.getExtendedCorrectionList(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC), requestParams.getExcludedCorrections()))
 			.willReturn(extCorrs);
@@ -237,7 +237,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 			.willReturn(primaryDesc);
 		given(descService.getTimeSeriesDescriptionList(any(List.class)))
 			.willReturn(new ArrayList<>());
-		given(tsDataService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
+			given(tsDataService.get(requestParams.getPrimaryTimeseriesIdentifier(), requestParams, ZoneOffset.UTC, false, false, true, null))
 			.willReturn(primaryData);
 		given(corrListService.getExtendedCorrectionList(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC), requestParams.getExcludedCorrections()))
 			.willReturn(extCorrs);
@@ -325,7 +325,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 
 	@Test
 	public void getCorrectedDataTest() {
-		given(tsDataService.getRawResponse(requestParams.getPrimaryTimeseriesIdentifier(), requestParams.getStartInstant(ZoneOffset.UTC), requestParams.getEndInstant(ZoneOffset.UTC)))
+		given(tsDataService.get(requestParams.getPrimaryTimeseriesIdentifier(), requestParams, ZoneOffset.UTC, false, false, true, null))
 			.willReturn(primaryData);
 		TimeSeriesSummaryCorrectedData corrData = service.getCorrectedData(requestParams, ZoneOffset.UTC, upProcessors, false);
 		assertTrue(corrData != null);

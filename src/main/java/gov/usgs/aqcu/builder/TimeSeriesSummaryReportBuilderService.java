@@ -2,15 +2,8 @@ package gov.usgs.aqcu.builder;
 
 import java.util.List;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Map;
-import java.util.HashMap;
-import java.time.Instant;
 import java.time.ZoneOffset;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,15 +26,13 @@ public class TimeSeriesSummaryReportBuilderService {
 	public static final String REPORT_TITLE = "Time Series Summary";
 	public static final String REPORT_TYPE = "timeseriessummary";
 
-	private static final Logger LOG = LoggerFactory.getLogger(TimeSeriesSummaryReportBuilderService.class);
-
 	private DataGapListBuilderService dataGapListBuilderService;
 	private ReportUrlBuilderService reportUrlBuilderService;
 	private GradeLookupService gradeLookupService;
 	private QualifierLookupService qualifierLookupService;
 	private LocationDescriptionListService locationDescriptionListService;
 	private TimeSeriesDescriptionListService timeSeriesDescriptionListService;
-	private TimeSeriesDataCorrectedService timeSeriesDataCorrectedService;
+	private TimeSeriesDataService timeSeriesDataService;
 	private RatingCurveListService ratingCurveListService;
 	private UpchainProcessorListService upchainProcessorListService;
 	private DownchainProcessorListService downchainProcessorListService;
@@ -55,12 +46,12 @@ public class TimeSeriesSummaryReportBuilderService {
 		QualifierLookupService qualifierLookupService,
 		LocationDescriptionListService locationDescriptionListService,
 		TimeSeriesDescriptionListService timeSeriesDescriptionListService,
-		TimeSeriesDataCorrectedService timeSeriesDataCorrectedService,
+		TimeSeriesDataService timeSeriesDataService,
 		UpchainProcessorListService upchainProcessorListService,
 		DownchainProcessorListService downchainProcessorListService,
 		RatingCurveListService ratingCurveListService,
 		CorrectionListService correctionListService) {
-		this.timeSeriesDataCorrectedService = timeSeriesDataCorrectedService;
+		this.timeSeriesDataService = timeSeriesDataService;
 		this.upchainProcessorListService = upchainProcessorListService;
 		this.downchainProcessorListService = downchainProcessorListService;
 		this.ratingCurveListService = ratingCurveListService;
@@ -176,10 +167,15 @@ public class TimeSeriesSummaryReportBuilderService {
 
 	protected TimeSeriesSummaryCorrectedData getCorrectedData(TimeSeriesSummaryRequestParameters requestParameters, ZoneOffset primaryZoneOffset, List<Processor> upchainProcessorList, boolean isDVSeries) {
 		//Fetch Corrected Data
-		TimeSeriesDataServiceResponse dataResponse = timeSeriesDataCorrectedService.getRawResponse(
+		TimeSeriesDataServiceResponse dataResponse = timeSeriesDataService.get(
 			requestParameters.getPrimaryTimeseriesIdentifier(), 
-			requestParameters.getStartInstant(primaryZoneOffset), 
-			requestParameters.getEndInstant(primaryZoneOffset));
+			requestParameters,
+			primaryZoneOffset,
+			isDVSeries,
+			false,
+			true,
+			null
+		);
 
 		//Calculate Data Gaps
 		List<DataGap> gapList = dataGapListBuilderService.buildGapList(dataResponse.getPoints(), isDVSeries, primaryZoneOffset);

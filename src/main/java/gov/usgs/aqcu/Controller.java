@@ -1,8 +1,6 @@
 package gov.usgs.aqcu;
 
 import com.google.gson.Gson;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,8 +23,7 @@ import gov.usgs.aqcu.parameter.TimeSeriesSummaryRequestParameters;
 @RequestMapping("/timeseriessummary")
 public class Controller {
 	public static final String UNKNOWN_USERNAME = "unknown";
-
-	private static final Logger LOG = LoggerFactory.getLogger(Controller.class);
+	
 	private Gson gson;
 	private TimeSeriesSummaryReportBuilderService reportBuilderService;
 	private JavaToRClient javaToRClient;
