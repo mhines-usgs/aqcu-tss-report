@@ -101,7 +101,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 	TimeSeriesDescription primaryDesc = TimeSeriesDescriptionListServiceTest.DESC_1;
 	List<TimeSeriesDescription> upDescs = TimeSeriesDescriptionListServiceTest.DESC_LIST;
 	List<TimeSeriesDescription> downDescs = TimeSeriesDescriptionListServiceTest.DESC_LIST;
-	TimeSeriesDataServiceResponse primaryData = TimeSeriesDataServiceTest.TS_DATA_RESPONSE;
+	TimeSeriesDataServiceResponse primaryData;
 	List<ExtendedCorrection> extCorrs;
 	List<RatingCurve> ratingCurves;
 	List<RatingShift> rawShifts;
@@ -116,6 +116,7 @@ public class TimeSeriesSummaryReportBuilderTest {
 		gapService = new DataGapListBuilderService();
 		service = new TimeSeriesSummaryReportBuilderService(gapService, reportUrlBuilderService, gradeService, qualService, locService, descService, tsDataService, upchainService, downchainService, ratingService, corrListService);
 		ReflectionTestUtils.setField(reportUrlBuilderService, "aqcuWebserviceUrl", aqcuWebserviceUrl);
+		primaryData = TimeSeriesDataServiceTest.buildData();
 
 		//Request Parameters
 		requestParams = new TimeSeriesSummaryRequestParameters();
