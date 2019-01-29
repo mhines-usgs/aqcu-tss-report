@@ -23,6 +23,7 @@ aquarius:
     password: ${aquariusServicePassword}
     retries:
       unauthorized: ${aquariusUnauthorizedRetires:3}
+    timeout: 30000
 
 security:
   require-ssl: true
