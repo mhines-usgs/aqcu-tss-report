@@ -195,11 +195,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <excludes>
-                        <exclude>**/**/**/**/**/**/config/*</exclude>
-                    </excludes>
-                </configuration>
             </plugin>
         </plugins>
     </build>
