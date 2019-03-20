@@ -76,3 +76,8 @@ spring:
     name: aqcu-tss-report
   jmx:
     default-domain: aqcu-tss-report
+
+logging:
+  level:
+    org:
+      springframework: ${aqcu_springFrameworkLogLevel}

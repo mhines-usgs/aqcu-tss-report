@@ -7,6 +7,8 @@ import java.time.ZoneOffset;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.RatingCurve;
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Processor;
@@ -17,6 +19,7 @@ import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.Time
 import com.aquaticinformatics.aquarius.sdk.timeseries.servicemodels.Publish.TimeSeriesDataServiceResponse;
 
 import gov.usgs.aqcu.parameter.TimeSeriesSummaryRequestParameters;
+import gov.usgs.aqcu.util.LogExecutionTime;
 import gov.usgs.aqcu.util.TimeSeriesUtils;
 import gov.usgs.aqcu.model.*;
 import gov.usgs.aqcu.retrieval.*;
@@ -25,6 +28,8 @@ import gov.usgs.aqcu.retrieval.*;
 public class TimeSeriesSummaryReportBuilderService {
 	public static final String REPORT_TITLE = "Time Series Summary";
 	public static final String REPORT_TYPE = "timeseriessummary";
+
+	private Logger log = LoggerFactory.getLogger(TimeSeriesSummaryReportBuilderService.class);
 
 	private DataGapListBuilderService dataGapListBuilderService;
 	private ReportUrlBuilderService reportUrlBuilderService;
@@ -64,22 +69,27 @@ public class TimeSeriesSummaryReportBuilderService {
 		this.timeSeriesDescriptionListService = timeSeriesDescriptionListService;
 	}
 
+	@LogExecutionTime
 	public TimeSeriesSummaryReport buildReport(TimeSeriesSummaryRequestParameters requestParameters, String requestingUser) {
 		TimeSeriesSummaryReport report = new TimeSeriesSummaryReport();
 
 		//Primary TS Metadata
+		log.debug("Get and parse primary timeseries description.");
 		TimeSeriesDescription primaryDescription = timeSeriesDescriptionListService.getTimeSeriesDescription(requestParameters.getPrimaryTimeseriesIdentifier());
 		ZoneOffset primaryZoneOffset = TimeSeriesUtils.getZoneOffset(primaryDescription);
 		String primaryStationId = primaryDescription.getLocationIdentifier();
 		report.setPrimaryTsMetadata(primaryDescription);
 		
 		//Upchain Processors and Rating Model
+		log.debug("Get upchain  processors");
 		List<Processor> upchainProcessors = getProcessors(true, requestParameters, primaryZoneOffset);
 
 		//Primary TS Data
+		log.debug("Get and parse primary series corrected data.");
 		report.setPrimaryTsData(getCorrectedData(requestParameters, primaryZoneOffset, upchainProcessors, TimeSeriesUtils.isDailyTimeSeries(primaryDescription)));
 
 		//Rating Data
+		log.debug("Get and parse primary timeseries description.");
 		String primaryRatingModel = getRatingModel(upchainProcessors);
 		if(primaryRatingModel != null && !primaryRatingModel.isEmpty()) {
 			report.setRatingCurves(getRatingCurves(requestParameters, primaryZoneOffset, primaryRatingModel));
@@ -87,14 +97,17 @@ public class TimeSeriesSummaryReportBuilderService {
 		}
 		
 		//Upchain & Downchain TS
+		log.debug("Get related upchain and downchain TS.");
 		report.setUpchainTs(getDerivationChainTS(true, requestParameters, primaryZoneOffset, primaryStationId, upchainProcessors));
 		report.setDownchainTs(getDerivationChainTS(false, requestParameters, primaryZoneOffset, primaryStationId, 
 				getProcessors(false, requestParameters, primaryZoneOffset)));
 		
 		//Corrections Data
+		log.debug("Get and parse primary series corrections.");
 		report.setCorrections(getCorrectionsData(requestParameters, primaryZoneOffset, primaryStationId));
 
 		//Report Metadata
+		log.debug("Set report metadata.");
 		report.setReportMetadata(getReportMetadata(requestParameters,
 			requestingUser,
 			report.getPrimaryTsMetadata().getLocationIdentifier(), 
