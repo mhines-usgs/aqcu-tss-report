@@ -1,0 +1,23 @@
+---
+  version: '3.7'
+
+  secrets:
+    tomcat_ssl_crt:
+      file: ./docker/certificates/tomcat/tomcat-wildcard-dev.crt
+    tomcat_ssl_key:
+      file: ./docker/certificates/tomcat/tomcat-wildcard-dev.key
+
+  services:
+    aqcu-tss-report-service:
+      build: .
+      image: aqcu-tss-report-service
+      ports:
+        - "7501:7501"
+      secrets:
+        - source: tomcat_ssl_crt
+          target: /home/spring/tomcat-wildcard-ssl.crt
+        - source: tomcat_ssl_key
+          target: /home/spring/tomcat-wildcard-ssl.key
+      env_file:
+        - ./docker/config.env
+        - ./docker/secrets.env
