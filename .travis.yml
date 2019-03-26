@@ -7,7 +7,7 @@ services:
 
 install:
   - chmod +x docker/certificates/create_certificates.sh && docker/certificates/create_certificates.sh
-  - docker-compose up --detach --build $service
+  - docker-compose up --detach --build
 
 before_script:
   - mvn clean verify jacoco:report coveralls:report
