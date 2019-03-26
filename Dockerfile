@@ -23,10 +23,9 @@ ENV aquariusServiceUser=apinwisra
 ENV hystrixThreadTimeout=300000
 ENV hystrixMaxQueueSize=200
 ENV hystrixThreadPoolSize=10
-ENV oauthResourceId=local-app
-ENV oauthResourceTokenKeyUri=https://localhost:8443/auth/oauth/token_key
+ENV oauthResourceId=resource-id
+ENV oauthResourceTokenKeyUri=https://example.gov/oauth/token_key
 ENV HEALTHY_RESPONSE_CONTAINS='{"status":{"code":"UP","description":""}'
 
-COPY --chown=1000:1000 docker/launch-app.sh ${LAUNCH_APP_SCRIPT}
 COPY --chown=1000:1000 --from=build /build/target/*.jar app.jar
 
