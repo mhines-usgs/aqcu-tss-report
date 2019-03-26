@@ -9,11 +9,11 @@
 
   jobs:
     include:
-      - stage: jacoco
+      - name: jacoco
         language: java
         script:
           - mvn clean verify jacoco:report coveralls:report
-      - stage: docker_build
+      - name: docker_build
         language: bash
         services: docker
         before_install:
