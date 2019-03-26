@@ -8,16 +8,15 @@
       - DOCKER_IMAGE=aqcu-tss-report-service
       - SPRING_BOOT_BASE_IMAGE_VERSION=latest
 
-  language: java
-
-  services: docker
-
   jobs:
     include:
       - stage: jacoco
+        language: java
         script:
           - mvn clean verify jacoco:report coveralls:report
       - stage: docker_build
+        language: bash
+        services: docker
         before_install:
           - sudo apt-get update
           - sudo rm /usr/local/bin/docker-compose
