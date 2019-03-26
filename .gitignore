@@ -7,6 +7,5 @@
 /.idea
 **/*.crt
 **/*.csr
-**/*.key
-
+docker/certificates/
 docker-compose-local.yml
