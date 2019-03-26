@@ -3,9 +3,9 @@
 
   secrets:
     tomcat_ssl_crt:
-      file: ./docker/certificates/tomcat/tomcat-wildcard-dev.crt
+      file: ./docker/certificates/tomcat-wildcard-dev.crt
     tomcat_ssl_key:
-      file: ./docker/certificates/tomcat/tomcat-wildcard-dev.key
+      file: ./docker/certificates/tomcat-wildcard-dev.key
 
   services:
     aqcu-tss-report-service:
