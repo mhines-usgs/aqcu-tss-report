@@ -8,9 +8,9 @@
       file: ./docker/certificates/tomcat-wildcard.key
 
   services:
-    aqcu-tss-report-service:
+    aqcu-tss-report:
       build: .
-      image: aqcu-tss-report-service
+      image: aqcu-tss-report
       ports:
         - "7501:7501"
       secrets:
