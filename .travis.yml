@@ -9,11 +9,11 @@
 
   jobs:
     include:
-      - stage: jacoco
+      - name: jacoco
         language: java
         script:
           - mvn clean verify jacoco:report coveralls:report
-      - stage: docker_build
+      - name: docker_build
         language: bash
         services: docker
         before_install:
@@ -36,4 +36,3 @@
           - docker run -d --name db arminc/clair-db
           - docker run -p 6060:6060 --link db:postgres -d --name clair arminc/clair-local-scan:v2.0.3
           - clair-scanner -c "http://127.0.0.1:6060" --ip "$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')" $DOCKER_IMAGE:latest || true
-
