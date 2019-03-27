@@ -13,6 +13,8 @@
       image: aqcu-tss-report
       ports:
         - "7501:7501"
+      volumes: 
+        - ./docker/certificates/import_certs:/certificates:ro
       secrets:
         - source: tomcat_ssl_crt
           target: /home/spring/tomcat-wildcard-ssl.crt
@@ -28,7 +30,9 @@
       network_mode: "host"
       ports:
         - "7501:7501"
-      secrets:
+      volumes: 
+        - ./docker/certificates/import_certs:/certificates:ro
+      secrets: 
         - source: tomcat_ssl_crt
           target: /home/spring/tomcat-wildcard-ssl.crt
         - source: tomcat_ssl_key
@@ -41,6 +45,8 @@
       build: .
       image: aqcu-tss-report
       network_mode: "host"
+      volumes: 
+        - ./docker/certificates/import_certs:/certificates:ro
       ports:
         - "7501:7501"
         - "8000:8000"
