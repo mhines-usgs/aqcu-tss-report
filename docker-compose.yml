@@ -1,6 +1,14 @@
 ---
   version: '3.7'
 
+  x-config:
+    &secrets-config
+    secrets:
+      - source: tomcat_ssl_crt
+        target: /home/spring/tomcat-wildcard-ssl.crt
+      - source: tomcat_ssl_key
+        target: /home/spring/tomcat-wildcard-ssl.key
+
   secrets:
     tomcat_ssl_crt:
       file: ./docker/certificates/tomcat-wildcard.crt
@@ -15,11 +23,7 @@
         - "7501:7501"
       volumes: 
         - ./docker/certificates/import_certs:/certificates:ro
-      secrets:
-        - source: tomcat_ssl_crt
-          target: /home/spring/tomcat-wildcard-ssl.crt
-        - source: tomcat_ssl_key
-          target: /home/spring/tomcat-wildcard-ssl.key
+      << : *secrets-config
       env_file:
         - ./docker/config.env
         - ./docker/secrets.env
@@ -32,11 +36,7 @@
         - "7501:7501"
       volumes: 
         - ./docker/certificates/import_certs:/certificates:ro
-      secrets: 
-        - source: tomcat_ssl_crt
-          target: /home/spring/tomcat-wildcard-ssl.crt
-        - source: tomcat_ssl_key
-          target: /home/spring/tomcat-wildcard-ssl.key
+      << : *secrets-config
       env_file:
         - ./docker/config.env
         - ./docker/secrets.env
@@ -47,6 +47,7 @@
       network_mode: "host"
       volumes: 
         - ./docker/certificates/import_certs:/certificates:ro
+      << : *secrets-config
       ports:
         - "7501:7501"
         - "8000:8000"
