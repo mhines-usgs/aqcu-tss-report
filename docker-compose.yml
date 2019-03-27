@@ -21,3 +21,31 @@
       env_file:
         - ./docker/config.env
         - ./docker/secrets.env
+
+    aqcu-tss-report-local-dev:
+      build: .
+      image: aqcu-tss-report
+      network_mode: "host"
+      ports:
+        - "7501:7501"
+      secrets:
+        - source: tomcat_ssl_crt
+          target: /home/spring/tomcat-wildcard-ssl.crt
+        - source: tomcat_ssl_key
+          target: /home/spring/tomcat-wildcard-ssl.key
+      env_file:
+        - ./docker/config.env
+        - ./docker/secrets.env
+        
+    aqcu-tss-report-debug:
+      build: .
+      image: aqcu-tss-report
+      network_mode: "host"
+      ports:
+        - "7501:7501"
+        - "8000:8000"
+      environment:
+        - JAVA_OPTIONS="-agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n"
+      env_file:
+        - ./docker/config.env
+        - ./docker/secrets.env
